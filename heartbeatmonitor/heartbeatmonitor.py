@@ -13,7 +13,7 @@ import time
 logger = logging.getLogger(__name__)
 #logger.setLevel(logging.DEBUG)
 
-config_path = 'config/config.ini'
+config_path = '../../config/config.ini'
 
 
 class HeartbeatMonitor:
