@@ -143,13 +143,13 @@ class HeartbeatMonitor:
         self.heartbeat_delta = (datetime.datetime.now() - self.heartbeat_last).total_seconds()
         logger.debug('self.heartbeat_delta: ' + str(self.heartbeat_delta))
 
+        self.heartbeat_last = datetime.datetime.now()
+        logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
+
         if self.flatline_alerts_only == False:
             heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.heartbeat_last).total_seconds()) / 60)
 
             alert_submessage = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
-
-            self.heartbeat_last = datetime.datetime.now()
-            logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
 
             alert_message = str(self.heartbeat_last)
 
