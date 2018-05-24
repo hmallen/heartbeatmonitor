@@ -1,2 +1,2 @@
 # HeartbeatMonitor
-Heartbeat monitor with integrated Slack alerts to facilitate heartbeat monitoring for multiple programs simultaneously
+Heartbeat monitor with integrated Slack alerts designed for use with multiple programs simultaneously.
