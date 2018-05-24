@@ -121,6 +121,8 @@ class HeartbeatMonitor:
         elif self.heartbeat_monitor == 'testing':
             logger.info('Using testing heartbeat monitor. Outputting to console.')
 
+        self.monitor_isrunning = False
+
 
     def start_monitor(self):
         logger.info('Starting heartbeat monitor.')
@@ -134,9 +136,18 @@ class HeartbeatMonitor:
         self.kill_monitor = True
         logger.debug('[stop_monitor] self.kill_monitor: ' + str(self.kill_monitor))
 
+        while self.monitor_isrunning == True:
+            time.sleeo(0.1)
+
+        logger.info('Terminating heartbeat monitor process.')
+
         self.monitor_heartbeat.terminate()
 
+        logger.info('Joining terminated process to ensure clean exit.')
+
         self.monitor_heartbeat.join()
+
+        logger.info('Heartbeat monitor stopped successfully.')
 
 
     def heartbeat(self):
@@ -175,6 +186,9 @@ class HeartbeatMonitor:
         try:
             self.kill_monitor = False
             logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
+
+            self.monitor_isrunning = True
+            logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
 
             self.heartbeat_last = datetime.datetime.now()
             logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
@@ -236,20 +250,27 @@ class HeartbeatMonitor:
                 logger.info('Alert Message:    ' + alert_message)
                 logger.info('Alert Submessage: ' + alert_submessage)
 
+            #self.kill_monitor = False
+
+        except multiprocessing.ProcessError as e:
+            logger.exception('multiprocessing.ProcessError raised in monitor().')
+            logger.exception(e)
+
+            raise
+
         except Exception as e:
             logger.exception('Exception raised in heartbeat main loop.')
             logger.exception(e)
 
             raise
 
-        except multiprocessing.ProcessError as e:
-            logger.exception('multiprocessing.ProcessError raised in monitor().')
-            logger.exception(e)
-
         except KeyboardInterrupt:
             logger.debug('KeyboardInterrupt in heartbeat main loop.')
 
             raise
+
+        finally:
+            monitor.isrunning = False
 
 
     def send_slack_alert(self, channel_id, message, submessage=None, flatline=False, status_message=False):
