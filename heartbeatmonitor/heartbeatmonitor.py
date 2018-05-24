@@ -13,11 +13,11 @@ import time
 logger = logging.getLogger(__name__)
 #logger.setLevel(logging.DEBUG)
 
-config_path = '../../config/config.ini'
+#config_path = '../../config/config.ini'
 
 
 class HeartbeatMonitor:
-    def __init__(self, module, monitor, timeout, flatline_timeout, flatline_alerts_only=False, test_channel=False):
+    def __init__(self, module, monitor, timeout, flatline_timeout, config_path, flatline_alerts_only=False, test_channel=False):
         self.module_name = module
 
         self.heartbeat_monitor = monitor
