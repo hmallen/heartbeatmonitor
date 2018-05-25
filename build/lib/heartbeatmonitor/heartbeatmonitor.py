@@ -1,10 +1,7 @@
-#import configparser
 import datetime
 import json
 import logging
-#from multiprocessing import Process
 import multiprocessing
-#import thread
 import time
 
 #from slackclient import SlackClient
@@ -37,6 +34,8 @@ class HeartbeatMonitor:
         self.monitor_heartbeat = multiprocessing.Process(target=HeartbeatMonitor.monitor, args=(self,))
 
         self.kill_monitor = False
+
+        self.monitor_isrunning = False
 
         if self.heartbeat_monitor == 'slack':
             import configparser
@@ -118,11 +117,9 @@ class HeartbeatMonitor:
         elif self.heartbeat_monitor == 'testing':
             logger.info('Using testing heartbeat monitor. Outputting to console.')
 
-        self.monitor_isrunning = False
-
 
     def start_monitor(self):
-        logger.info('Starting heartbeat monitor.')
+        #logger.info('Starting heartbeat monitor.')
 
         self.monitor_heartbeat.start()
 
@@ -180,13 +177,13 @@ class HeartbeatMonitor:
 
 
     def monitor(self):
+        self.kill_monitor = False
+        logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
+
+        self.monitor_isrunning = True
+        logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
+
         try:
-            self.kill_monitor = False
-            logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
-
-            self.monitor_isrunning = True
-            logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
-
             self.heartbeat_last = datetime.datetime.now()
             logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
 
@@ -238,6 +235,7 @@ class HeartbeatMonitor:
             self.heartbeat_last = datetime.datetime.now()
             logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
 
+            """
             alert_message = 'Heartbeat monitor *_DEACTIVATED_* at ' + str(self.heartbeat_last) + '.'
 
             if self.heartbeat_monitor == 'slack':
@@ -248,6 +246,7 @@ class HeartbeatMonitor:
             elif self.heartbeat_monitor == 'testing':
                 logger.info('Alert Message:    ' + alert_message)
                 logger.info('Alert Submessage: ' + alert_submessage)
+            """
 
             #self.kill_monitor = False
 
@@ -270,9 +269,8 @@ class HeartbeatMonitor:
 
         finally:
             self.monitor_isrunning = False
-            logger.debug('self.monitor_isrunning: ' + str(sef.monitor_isrunning))
+            logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
 
-            """
             self.heartbeat_last = datetime.datetime.now()
             logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
 
@@ -286,7 +284,6 @@ class HeartbeatMonitor:
             elif self.heartbeat_monitor == 'testing':
                 logger.info('Alert Message:    ' + alert_message)
                 logger.info('Alert Submessage: ' + alert_submessage)
-            """
 
 
     def send_slack_alert(self, channel_id, message, submessage=None, flatline=False, status_message=False):
