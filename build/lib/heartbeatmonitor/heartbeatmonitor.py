@@ -5,9 +5,9 @@ from multiprocessing import Process, Manager
 import multiprocessing
 import time
 
-logging.basicConfig()
+#logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.DEBUG)
 
 #config_path = '../../config/config.ini'
 
@@ -362,8 +362,6 @@ if __name__ == '__main__':
     test_timeout = 1
 
     test_flatline_timeout = 5
-
-    config_path = '../../TeslaBot/config/config.ini'
 
     hb = HeartbeatMonitor(module='Testing', monitor='slack', config_path=config_path,
                           timeout=test_timeout, flatline_timeout=test_flatline_timeout,
