@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: heartbeatmonitor
-Version: 0.1a2
+Version: 0.1a3
 Summary: Central heartbeat monitoring application for multi-program deployment.
 Home-page: https://github.com/hmallen/heartbeatmonitor
 Author: Hunter M. Allen

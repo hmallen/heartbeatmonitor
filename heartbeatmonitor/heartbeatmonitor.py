@@ -1,7 +1,7 @@
 import datetime
 import json
 import logging
-import multiprocessing
+from multiprocessing import Manager, Process
 import time
 
 #from slackclient import SlackClient
@@ -31,11 +31,15 @@ class HeartbeatMonitor:
 
         self.heartbeat_delta = datetime.timedelta(seconds=0)
 
-        self.monitor_heartbeat = multiprocessing.Process(target=HeartbeatMonitor.monitor, args=(self,))
+        self.multiprocessing_manager = Manager()
 
-        self.kill_monitor = False
+        self.monitor_states = self.multiprocessing_manager.dict({'kill' : False, 'isrunning': False})
 
-        self.monitor_isrunning = False
+        self.monitor_heartbeat = Process(target=HeartbeatMonitor.monitor, args=(self,))
+
+        #self.kill_monitor = False
+
+        #self.monitor_isrunning = False
 
         if self.heartbeat_monitor == 'slack':
             import configparser
@@ -127,10 +131,14 @@ class HeartbeatMonitor:
     def stop_monitor(self):
         logger.info('Stopping heartbeat monitor.')
 
-        self.kill_monitor = True
-        logger.debug('[stop_monitor] self.kill_monitor: ' + str(self.kill_monitor))
+        #self.kill_monitor = True
+        #logger.debug('[stop_monitor] self.kill_monitor: ' + str(self.kill_monitor))
 
-        while self.monitor_isrunning == True:
+        self.monitor_states['kill'] = True
+        logger.debug('[stop_monitor] self.monitor_states[\'kill\']: ' + str(self.monitor_states['kill']))
+
+        #while self.monitor_isrunning == True:
+        while self.monitor_states['isrunning'] == True:
             time.sleep(0.1)
 
         logger.info('Terminating heartbeat monitor process.')
@@ -177,11 +185,17 @@ class HeartbeatMonitor:
 
 
     def monitor(self):
-        self.kill_monitor = False
-        logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
+        #self.kill_monitor = False
+        #logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
 
-        self.monitor_isrunning = True
-        logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
+        self.monitor_states['kill'] = False
+        logger.debug('[stop_monitor] self.monitor_states[\'kill\']: ' + str(self.monitor_states['kill']))
+
+        #self.monitor_isrunning = True
+        #logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
+
+        self.monitor_states['isrunning'] = True
+        logger.debug('self.monitor_states[\'isrunning\']: ' + str(self.monitor_states['isrunning']))
 
         try:
             self.heartbeat_last = datetime.datetime.now()
@@ -223,8 +237,10 @@ class HeartbeatMonitor:
                     self.flatline_last = datetime.datetime.now()
                     logger.debug('self.flatline_last: ' + str(self.flatline_last))
 
-                if self.kill_monitor == True:
-                    logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
+                #if self.kill_monitor == True:
+                if self.monitor_states['kill'] == True:
+                    #logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
+                    logger.debug('self.monitor_states[\'kill\']: ' + str(self.monitor_states['kill']))
 
                     logger.debug('Breaking from monitor loop.')
 
@@ -268,8 +284,11 @@ class HeartbeatMonitor:
             #raise
 
         finally:
-            self.monitor_isrunning = False
-            logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
+            #self.monitor_isrunning = False
+            #logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
+
+            self.monitor_states['isrunning'] = False
+            logger.debug('self.monitor_states[\'isrunning\']: ' + str(self.monitor_states['isrunning']))
 
             self.heartbeat_last = datetime.datetime.now()
             logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
