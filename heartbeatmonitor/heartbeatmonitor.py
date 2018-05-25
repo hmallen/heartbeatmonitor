@@ -7,9 +7,9 @@ import time
 
 #from slackclient import SlackClient
 
-#logging.basicConfig()
+logging.basicConfig()
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
 #config_path = '../../config/config.ini'
 
@@ -47,7 +47,7 @@ class HeartbeatMonitor:
                 logger.error('Slack alerts enabled. Must provide path to config file with Slack API credentials. Exiting.')
 
                 sys.exit(1)
-            
+
             import configparser
             from slackclient import SlackClient
 
@@ -149,7 +149,7 @@ class HeartbeatMonitor:
 
         #self.monitor_heartbeat.terminate()
 
-        active_processes = self.monitor_heartbeat.active_children()
+        active_processes = multiprocessing.active_children()
 
         for proc in active_processes:
             logger.debug('Child Process: ' + str(proc))
@@ -200,14 +200,8 @@ class HeartbeatMonitor:
 
 
     def monitor(self):
-        #self.kill_monitor = False
-        #logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
-
         self.monitor_states['kill'] = False
         logger.debug('[stop_monitor] self.monitor_states[\'kill\']: ' + str(self.monitor_states['kill']))
-
-        #self.monitor_isrunning = True
-        #logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
 
         self.monitor_states['isrunning'] = True
         logger.debug('self.monitor_states[\'isrunning\']: ' + str(self.monitor_states['isrunning']))
@@ -265,21 +259,6 @@ class HeartbeatMonitor:
 
             self.heartbeat_last = datetime.datetime.now()
             logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
-
-            """
-            alert_message = 'Heartbeat monitor *_DEACTIVATED_* at ' + str(self.heartbeat_last) + '.'
-
-            if self.heartbeat_monitor == 'slack':
-                alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
-                                                                 message=alert_message, submessage=alert_submessage, status_message=True)
-                logger.debug('alert_result: ' + str(alert_result))
-
-            elif self.heartbeat_monitor == 'testing':
-                logger.info('Alert Message:    ' + alert_message)
-                logger.info('Alert Submessage: ' + alert_submessage)
-            """
-
-            #self.kill_monitor = False
 
         except multiprocessing.ProcessError as e:
             logger.exception('multiprocessing.ProcessError raised in monitor().')
