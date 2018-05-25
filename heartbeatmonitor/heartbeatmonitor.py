@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 from multiprocessing import Manager, Process
+import multiprocessing
 import time
 
 #from slackclient import SlackClient
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class HeartbeatMonitor:
-    def __init__(self, module, monitor, timeout, flatline_timeout, config_path, flatline_alerts_only=False, test_channel=False):
+    def __init__(self, module, monitor, timeout, flatline_timeout, config_path=None, flatline_alerts_only=False, test_channel=False):
         self.module_name = module
 
         self.heartbeat_monitor = monitor
@@ -42,6 +43,11 @@ class HeartbeatMonitor:
         #self.monitor_isrunning = False
 
         if self.heartbeat_monitor == 'slack':
+            if config_path == None:
+                logger.error('Slack alerts enabled. Must provide path to config file with Slack API credentials. Exiting.')
+
+                sys.exit(1)
+            
             import configparser
             from slackclient import SlackClient
 
@@ -141,13 +147,22 @@ class HeartbeatMonitor:
         while self.monitor_states['isrunning'] == True:
             time.sleep(0.1)
 
-        logger.info('Terminating heartbeat monitor process.')
+        #self.monitor_heartbeat.terminate()
 
-        self.monitor_heartbeat.terminate()
+        active_processes = self.monitor_heartbeat.active_children()
 
-        logger.info('Joining terminated process to ensure clean exit.')
+        for proc in active_processes:
+            logger.debug('Child Process: ' + str(proc))
 
-        self.monitor_heartbeat.join()
+            logger.info('Terminating heartbeat monitor process.')
+
+            proc.terminate()
+
+            logger.info('Joining terminated process to ensure clean exit.')
+
+            proc.join()
+
+        #self.monitor_heartbeat.join()
 
         logger.info('Heartbeat monitor stopped successfully.')
 
@@ -365,16 +380,24 @@ if __name__ == '__main__':
 
     test_flatline_timeout = 5
 
-    hb = HeartbeatMonitor(module='main', monitor='testing', timeout=test_timeout, flatline_timeout=test_flatline_timeout)
+    config_path = '../../TeslaBot/config/config.ini'
+
+    hb = HeartbeatMonitor(module='Testing', monitor='slack', config_path=config_path,
+                          timeout=test_timeout, flatline_timeout=test_flatline_timeout,
+                          test_channel=True)
 
     try:
-        #hb.monitor()
-        #heartbeat_monitor = Process(target=HeartbeatMonitor.monitor, args=(hb,))
-
-        #heartbeat_monitor.start()
-        #heartbeat_monitor.join()
-
         hb.start_monitor()
+
+        while (True):
+            logger.debug('hb.monitor_states[\'isrunning\']: ' + str(hb.monitor_states['isrunning']))
+
+            if hb.monitor_states['isrunning'] == True:
+                break
+
+            time.sleep(1)
+
+        logger.info('Heartbeat monitor ready.')
 
         for x in range(0, 2):
             logger.debug('Heartbeat #' + str(x + 1))
@@ -392,26 +415,11 @@ if __name__ == '__main__':
 
         hb.stop_monitor()
 
-        """
-        loop_start = time.time()
-        while (True):
-            if hb.kill_monitor == True:
-                logger.info('Stopping heartbeat monitor.')
-
-                heartbeat_monitor.terminate()
-
-                break
-
-            elif (time.time() - loop_start) > test_delay:
-                hb.kill_monitor = True
-
-            time.sleep(0.1)
-        """
-
         logger.debug('Done.')
 
-    except multiprocessing.ProcessError:
+    except multiprocessing.ProcessError as e:
         logger.exception('multiprocessing.ProcessError raised in main.')
+        logger.exception(e)
 
     except Exception as e:
         logger.exception('Exception raised.')
