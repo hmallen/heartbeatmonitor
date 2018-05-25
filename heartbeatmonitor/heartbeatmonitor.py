@@ -42,7 +42,7 @@ class HeartbeatMonitor:
         self.heartbeat_delta = datetime.timedelta(seconds=0)
 
         #self.multiprocessing_manager = Manager()
-        self.multiprocessing_manager = HeartbeatMonitor.ShareManager()
+        self.multiprocessing_manager = DataManager.ShareManager()
 
         self.multiprocessing_manager.start(signal.signal, (signal.SIGINT, signal.SIG_IGN))
 
