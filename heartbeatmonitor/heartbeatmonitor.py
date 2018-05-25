@@ -1,8 +1,10 @@
 import datetime
 import json
 import logging
-from multiprocessing import Manager, Process
+from multiprocessing import Process#, Manager
+from multiprocessing.managers import BaseManager
 import multiprocessing
+import signal
 import time
 
 #from slackclient import SlackClient
@@ -15,6 +17,13 @@ logger.setLevel(logging.DEBUG)
 
 
 class HeartbeatMonitor:
+    class DataManager(BaseManager):
+        pass
+
+
+    DataManager.register('ShareManager', DataManager)
+
+
     def __init__(self, module, monitor, timeout, flatline_timeout, config_path=None, flatline_alerts_only=False, test_channel=False):
         self.module_name = module
 
@@ -32,7 +41,10 @@ class HeartbeatMonitor:
 
         self.heartbeat_delta = datetime.timedelta(seconds=0)
 
-        self.multiprocessing_manager = Manager()
+        #self.multiprocessing_manager = Manager()
+        self.multiprocessing_manager = ShareManager()
+
+        self.multiprocessing_manager.start(signal.signal, signal.SIGINT, signal.SIG_IGN))
 
         self.monitor_states = self.multiprocessing_manager.dict({'kill' : False, 'isrunning': False})
 
