@@ -22,15 +22,12 @@ class HeartbeatMonitor:
 
         self.heartbeat_monitor = monitor
 
-        #self.heartbeat_last = datetime.datetime.now()
-
         self.timeout_delta = datetime.timedelta(minutes=timeout)
 
         self.heartbeat_last = datetime.datetime.now()
 
         self.flatline_delta = datetime.timedelta(minutes=flatline_timeout)
 
-        #self.flatline_last = datetime.datetime.now()
         self.flatline_last = datetime.datetime.now() - self.flatline_delta
 
         self.flatline_alerts_only = flatline_alerts_only
@@ -137,7 +134,7 @@ class HeartbeatMonitor:
         logger.debug('[stop_monitor] self.kill_monitor: ' + str(self.kill_monitor))
 
         while self.monitor_isrunning == True:
-            time.sleeo(0.1)
+            time.sleep(0.1)
 
         logger.info('Terminating heartbeat monitor process.')
 
@@ -232,6 +229,8 @@ class HeartbeatMonitor:
                 if self.kill_monitor == True:
                     logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
 
+                    logger.debug('Breaking from monitor loop.')
+
                     break
 
                 time.sleep(0.1)
@@ -256,21 +255,38 @@ class HeartbeatMonitor:
             logger.exception('multiprocessing.ProcessError raised in monitor().')
             logger.exception(e)
 
-            raise
+            #raise
 
         except Exception as e:
             logger.exception('Exception raised in heartbeat main loop.')
             logger.exception(e)
 
-            raise
+            #raise
 
         except KeyboardInterrupt:
             logger.debug('KeyboardInterrupt in heartbeat main loop.')
 
-            raise
+            #raise
 
         finally:
-            monitor.isrunning = False
+            self.monitor_isrunning = False
+            logger.debug('self.monitor_isrunning: ' + str(sef.monitor_isrunning))
+
+            """
+            self.heartbeat_last = datetime.datetime.now()
+            logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
+
+            alert_message = 'Heartbeat monitor *_DEACTIVATED_* at ' + str(self.heartbeat_last) + '.'
+
+            if self.heartbeat_monitor == 'slack':
+                alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
+                                                                 message=alert_message, submessage=alert_submessage, status_message=True)
+                logger.debug('alert_result: ' + str(alert_result))
+
+            elif self.heartbeat_monitor == 'testing':
+                logger.info('Alert Message:    ' + alert_message)
+                logger.info('Alert Submessage: ' + alert_submessage)
+            """
 
 
     def send_slack_alert(self, channel_id, message, submessage=None, flatline=False, status_message=False):
