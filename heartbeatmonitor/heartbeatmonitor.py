@@ -44,7 +44,7 @@ class HeartbeatMonitor:
         #self.multiprocessing_manager = Manager()
         self.multiprocessing_manager = ShareManager()
 
-        self.multiprocessing_manager.start(signal.signal, signal.SIGINT, signal.SIG_IGN))
+        self.multiprocessing_manager.start(signal.signal, (signal.SIGINT, signal.SIG_IGN))
 
         self.monitor_states = self.multiprocessing_manager.dict({'kill' : False, 'isrunning': False})
 
