@@ -3,7 +3,6 @@ import json
 import logging
 from multiprocessing import Process, Manager
 import multiprocessing
-import signal
 import time
 
 logging.basicConfig()
