@@ -1,4 +1,4 @@
-README.txt
+README.md
 setup.py
 heartbeatmonitor/__init__.py
 heartbeatmonitor/heartbeatmonitor.py
