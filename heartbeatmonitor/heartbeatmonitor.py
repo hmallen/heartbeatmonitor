@@ -147,9 +147,17 @@ class HeartbeatMonitor:
         while self.monitor_states['isrunning'] == True:
             time.sleep(0.1)
 
+        logger.info('Stopping multiprocessing manager.')
+
+        self.multiprocessing_manager.shutdown()
+
         #self.monitor_heartbeat.terminate()
 
+        logger.info('Gathering active child processes.')
+
         active_processes = multiprocessing.active_children()
+
+        logger.info('Terminating all child processes.')
 
         for proc in active_processes:
             logger.debug('Child Process: ' + str(proc))
