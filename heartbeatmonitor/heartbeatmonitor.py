@@ -1,13 +1,10 @@
 import datetime
 import json
 import logging
-from multiprocessing import Process#, Manager
-from multiprocessing.managers import BaseManager
+from multiprocessing import Process, Manager
 import multiprocessing
 import signal
 import time
-
-#from slackclient import SlackClient
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -17,13 +14,6 @@ logger.setLevel(logging.DEBUG)
 
 
 class HeartbeatMonitor:
-    class DataManager(BaseManager):
-        pass
-
-
-    DataManager.register('ShareManager', DataManager)
-
-
     def __init__(self, module, monitor, timeout, flatline_timeout, config_path=None, flatline_alerts_only=False, test_channel=False):
         self.module_name = module
 
@@ -41,10 +31,11 @@ class HeartbeatMonitor:
 
         self.heartbeat_delta = datetime.timedelta(seconds=0)
 
-        #self.multiprocessing_manager = Manager()
-        self.multiprocessing_manager = DataManager.ShareManager()
+        self.multiprocessing_manager = Manager()
 
-        self.multiprocessing_manager.start(signal.signal, (signal.SIGINT, signal.SIG_IGN))
+        #self.multiprocessing_manager = DataManager.ShareManager()
+
+        #self.multiprocessing_manager.start(signal.signal, (signal.SIGINT, signal.SIG_IGN))
 
         self.monitor_states = self.multiprocessing_manager.dict({'kill' : False, 'isrunning': False})
 
@@ -158,12 +149,6 @@ class HeartbeatMonitor:
         #while self.monitor_isrunning == True:
         while self.monitor_states['isrunning'] == True:
             time.sleep(0.1)
-
-        logger.info('Stopping multiprocessing manager.')
-
-        self.multiprocessing_manager.shutdown()
-
-        #self.monitor_heartbeat.terminate()
 
         logger.info('Gathering active child processes.')
 
