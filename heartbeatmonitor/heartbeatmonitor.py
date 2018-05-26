@@ -179,7 +179,7 @@ class HeartbeatMonitor:
         logger.debug('self.heartbeat_delta: ' + str(self.heartbeat_delta))
 
         self.monitor_states['heartbeat_last'] = datetime.datetime.now()
-        logger.debug('self.monitor_states['heartbeat_last']: ' + str(self.monitor_states['heartbeat_last']))
+        logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
 
         if self.flatline_alerts_only == False:
             heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()) / 60)
@@ -215,7 +215,7 @@ class HeartbeatMonitor:
 
         try:
             self.monitor_states['heartbeat_last'] = datetime.datetime.now()
-            logger.debug('self.monitor_states['heartbeat_last']: ' + str(self.monitor_states['heartbeat_last']))
+            logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
 
             alert_message = 'Heartbeat monitor *_ACTIVATED_* at ' + str(self.monitor_states['heartbeat_last']) + '.'
 
@@ -251,7 +251,7 @@ class HeartbeatMonitor:
                         #logger.info('Alert Submessage: ' + alert_submessage)
 
                     self.monitor_states['flatline_last'] = datetime.datetime.now()
-                    logger.debug('self.monitor_states['flatline_last']: ' + str(self.monitor_states['flatline_last']))
+                    logger.debug('self.monitor_states[\'flatline_last\']: ' + str(self.monitor_states['flatline_last']))
 
                 #if self.kill_monitor == True:
                 if self.monitor_states['kill'] == True:
@@ -265,7 +265,7 @@ class HeartbeatMonitor:
                 time.sleep(0.1)
 
             self.monitor_states['heartbeat_last'] = datetime.datetime.now()
-            logger.debug('self.monitor_states['heartbeat_last']: ' + str(self.monitor_states['heartbeat_last']))
+            logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
 
         except multiprocessing.ProcessError as e:
             logger.exception('multiprocessing.ProcessError raised in monitor().')
@@ -292,7 +292,7 @@ class HeartbeatMonitor:
             logger.debug('self.monitor_states[\'isrunning\']: ' + str(self.monitor_states['isrunning']))
 
             self.monitor_states['heartbeat_last'] = datetime.datetime.now()
-            logger.debug('self.monitor_states['heartbeat_last']: ' + str(self.monitor_states['heartbeat_last']))
+            logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
 
             alert_message = 'Heartbeat monitor *_DEACTIVATED_* at ' + str(self.monitor_states['heartbeat_last']) + '.'
 
