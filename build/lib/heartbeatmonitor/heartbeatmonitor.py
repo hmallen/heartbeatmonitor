@@ -68,7 +68,7 @@ class HeartbeatMonitor:
             logger.debug('self.slack_bot_user: ' + self.slack_bot_user)
 
             self.slack_bot_icon = config['settings']['slack_bot_icon']
-            logger.debug('self.slack_user_icon: ' + self.slack_user_icon)
+            logger.debug('self.slack_bot_icon: ' + self.slack_bot_icon)
 
             # Slack connection
             self.slack_client = SlackClient(slack_token)
