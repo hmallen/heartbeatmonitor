@@ -56,13 +56,13 @@ class HeartbeatMonitor:
             config = configparser.ConfigParser()
             config.read(config_path)
 
-            slack_token = config['slack']['slack_token_test']
+            slack_token = config['slack']['slack_token']
 
-            slack_alert_channel_heartbeat = config['settings']['slack_alert_channel_heartbeat']
-            logger.debug('slack_alert_channel_heartbeat: ' + slack_alert_channel_heartbeat)
+            slack_channel_heartbeat = config['settings']['slack_channel_heartbeat']
+            logger.debug('slack_channel_heartbeat: ' + slack_channel_heartbeat)
 
-            slack_alert_channel_testing = config['settings']['slack_alert_channel_testing']
-            logger.debug('slack_alert_channel_testing: ' + slack_alert_channel_testing)
+            slack_channel_testing = config['settings']['slack_channel_testing']
+            logger.debug('slack_channel_testing: ' + slack_channel_testing)
 
             # Slack connection
             self.slack_client = SlackClient(slack_token)
@@ -71,10 +71,10 @@ class HeartbeatMonitor:
             group_list = self.slack_client.api_call('groups.list')
 
             if test_channel == False:
-                slack_channel_targets = {'heartbeat': slack_alert_channel_heartbeat}
+                slack_channel_targets = {'heartbeat': slack_channel_heartbeat}
 
             else:
-                slack_channel_targets = {'heartbeat': slack_alert_channel_testing}
+                slack_channel_targets = {'heartbeat': slack_channel_testing}
 
             for target in slack_channel_targets:
                 try:
@@ -117,7 +117,7 @@ class HeartbeatMonitor:
 
                         sys.exit(1)
 
-            logger.debug('Slack channel for heartbeat alerts: #' + slack_alert_channel_heartbeat +
+            logger.debug('Slack channel for heartbeat alerts: #' + slack_channel_heartbeat +
                         ' (' + self.slack_alert_channel_id_heartbeat + ')')
 
             self.slack_alert_user = config['settings']['slack_alert_user']
