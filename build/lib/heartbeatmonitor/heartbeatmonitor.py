@@ -20,11 +20,11 @@ class HeartbeatMonitor:
 
         self.timeout_delta = datetime.timedelta(minutes=timeout)
 
-        self.heartbeat_last = datetime.datetime.now()
+        #self.monitor_states['heartbeat_last'] = datetime.datetime.now()
 
         self.flatline_delta = datetime.timedelta(minutes=flatline_timeout)
 
-        self.flatline_last = datetime.datetime.now() - self.flatline_delta
+        #self.monitor_states['flatline_last'] = datetime.datetime.now() - self.flatline_delta
 
         self.flatline_alerts_only = flatline_alerts_only
 
@@ -36,7 +36,10 @@ class HeartbeatMonitor:
 
         #self.multiprocessing_manager.start(signal.signal, (signal.SIGINT, signal.SIG_IGN))
 
-        self.monitor_states = self.multiprocessing_manager.dict({'kill' : False, 'isrunning': False})
+        self.monitor_states = self.multiprocessing_manager.dict({'heartbeat_last': datetime.datetime.now(),
+                                                                 'flatline_last': datetime.datetime.now() - self.flatline_delta,
+                                                                 'kill' : False,
+                                                                 'isrunning': False})
 
         self.monitor_heartbeat = Process(target=HeartbeatMonitor.monitor, args=(self,))
 
@@ -172,18 +175,18 @@ class HeartbeatMonitor:
 
 
     def heartbeat(self):
-        self.heartbeat_delta = (datetime.datetime.now() - self.heartbeat_last).total_seconds()
+        self.heartbeat_delta = (datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()
         logger.debug('self.heartbeat_delta: ' + str(self.heartbeat_delta))
 
-        self.heartbeat_last = datetime.datetime.now()
-        logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
+        self.monitor_states['heartbeat_last'] = datetime.datetime.now()
+        logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
 
         if self.flatline_alerts_only == False:
-            heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.heartbeat_last).total_seconds()) / 60)
+            heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()) / 60)
 
             alert_submessage = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
 
-            alert_message = str(self.heartbeat_last)
+            alert_message = str(self.monitor_states['heartbeat_last'])
 
             logger.info(alert_message)
 
@@ -211,10 +214,10 @@ class HeartbeatMonitor:
         logger.debug('self.monitor_states[\'isrunning\']: ' + str(self.monitor_states['isrunning']))
 
         try:
-            self.heartbeat_last = datetime.datetime.now()
-            logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
+            self.monitor_states['heartbeat_last'] = datetime.datetime.now()
+            logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
 
-            alert_message = 'Heartbeat monitor *_ACTIVATED_* at ' + str(self.heartbeat_last) + '.'
+            alert_message = 'Heartbeat monitor *_ACTIVATED_* at ' + str(self.monitor_states['heartbeat_last']) + '.'
 
             if self.flatline_alerts_only == True:
                 alert_submessage = 'Regular heartbeat alerts disabled. Only sending alerts on flatline detection.'
@@ -232,10 +235,10 @@ class HeartbeatMonitor:
                 logger.info('Alert Submessage: ' + str(alert_submessage))
 
             while (True):
-                if (datetime.datetime.now() - self.heartbeat_last) > self.timeout_delta and (datetime.datetime.now() - self.flatline_last) > self.flatline_delta:
+                if (datetime.datetime.now() - self.monitor_states['heartbeat_last']) > self.timeout_delta and (datetime.datetime.now() - self.monitor_states['flatline_last']) > self.flatline_delta:
                     # ALERT REQUIRED (HEARTBEAT TIME RESET BY CALLING )
 
-                    heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.heartbeat_last).total_seconds()) / 60)
+                    heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()) / 60)
 
                     alert_message = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
 
@@ -247,8 +250,8 @@ class HeartbeatMonitor:
                         logger.info('Alert Message:    ' + alert_message)
                         #logger.info('Alert Submessage: ' + alert_submessage)
 
-                    self.flatline_last = datetime.datetime.now()
-                    logger.debug('self.flatline_last: ' + str(self.flatline_last))
+                    self.monitor_states['flatline_last'] = datetime.datetime.now()
+                    logger.debug('self.monitor_states[\'flatline_last\']: ' + str(self.monitor_states['flatline_last']))
 
                 #if self.kill_monitor == True:
                 if self.monitor_states['kill'] == True:
@@ -261,8 +264,8 @@ class HeartbeatMonitor:
 
                 time.sleep(0.1)
 
-            self.heartbeat_last = datetime.datetime.now()
-            logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
+            self.monitor_states['heartbeat_last'] = datetime.datetime.now()
+            logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
 
         except multiprocessing.ProcessError as e:
             logger.exception('multiprocessing.ProcessError raised in monitor().')
@@ -288,10 +291,10 @@ class HeartbeatMonitor:
             self.monitor_states['isrunning'] = False
             logger.debug('self.monitor_states[\'isrunning\']: ' + str(self.monitor_states['isrunning']))
 
-            self.heartbeat_last = datetime.datetime.now()
-            logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
+            self.monitor_states['heartbeat_last'] = datetime.datetime.now()
+            logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
 
-            alert_message = 'Heartbeat monitor *_DEACTIVATED_* at ' + str(self.heartbeat_last) + '.'
+            alert_message = 'Heartbeat monitor *_DEACTIVATED_* at ' + str(self.monitor_states['heartbeat_last']) + '.'
 
             if self.heartbeat_monitor == 'slack':
                 alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
