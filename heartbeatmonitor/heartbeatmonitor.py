@@ -64,6 +64,12 @@ class HeartbeatMonitor:
             slack_channel_testing = config['settings']['slack_channel_testing']
             logger.debug('slack_channel_testing: ' + slack_channel_testing)
 
+            self.slack_bot_user = config['settings']['slack_bot_user']
+            logger.debug('self.slack_alert_user: ' + self.slack_alert_user)
+
+            self.slack_bot_icon = config['settings']['slack_bot_icon']
+            logger.debug('self.slack_user_icon: ' + self.slack_user_icon)
+
             # Slack connection
             self.slack_client = SlackClient(slack_token)
 
@@ -119,12 +125,6 @@ class HeartbeatMonitor:
 
             logger.debug('Slack channel for heartbeat alerts: #' + slack_channel_heartbeat +
                         ' (' + self.slack_alert_channel_id_heartbeat + ')')
-
-            self.slack_alert_user = config['settings']['slack_alert_user']
-            logger.debug('self.slack_alert_user: ' + self.slack_alert_user)
-
-            self.slack_user_icon = config['settings']['slack_user_icon']
-            logger.debug('self.slack_user_icon: ' + self.slack_user_icon)
 
         elif self.heartbeat_monitor == 'testing':
             logger.info('Using testing heartbeat monitor. Outputting to console.')
@@ -342,9 +342,9 @@ class HeartbeatMonitor:
                 'chat.postMessage',
                 channel=channel_id,
                 text=heartbeat_message,
-                username=self.slack_alert_user,
+                username=self.slack_bot_user,
                 #icon_emoji=slack_alert_user_icon,
-                icon_url=self.slack_user_icon,
+                icon_url=self.slack_bot_icon,
                 attachments=attachments
             )
 
