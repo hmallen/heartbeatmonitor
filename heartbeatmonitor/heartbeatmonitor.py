@@ -7,7 +7,7 @@ import multiprocessing
 import os
 import time
 
-logging.basicConfig()
+#logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
