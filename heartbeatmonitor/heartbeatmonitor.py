@@ -314,6 +314,24 @@ class HeartbeatMonitor:
         #else:
             #self.monitor_heartbeat.start()
 
+        alert_message = 'Heartbeat monitor *_ACTIVATED_* at ' + str(datetime.datetime.now()) + '.'
+
+        if self.flatline_alerts_only == True:
+            alert_submessage = 'Regular heartbeat alerts disabled. Only sending alerts on flatline detection.'
+
+        else:
+            alert_submessage = None
+
+        if self.heartbeat_monitor == 'slack':
+            alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
+                                                             message=alert_message, submessage=alert_submessage, status_message=True)
+
+            logger.debug('alert_result: ' + str(alert_result))
+
+        elif self.heartbeat_monitor == 'testing':
+            logger.info('Alert Message:    ' + alert_message)
+            logger.info('Alert Submessage: ' + str(alert_submessage))
+
         logger.debug('Heartbeat monitor active.')
 
 
@@ -360,6 +378,20 @@ class HeartbeatMonitor:
                 proc.join()
 
             #self.monitor_heartbeat.join()
+
+        alert_message = 'Heartbeat monitor *_DEACTIVATED_* at ' + str(datetime.datetime.now()) + '.'
+
+        alert_submessage = None
+
+        if self.heartbeat_monitor == 'slack':
+            alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
+                                                             message=alert_message, submessage=alert_submessage, status_message=True)
+
+            logger.debug('alert_result: ' + str(alert_result))
+
+        elif self.heartbeat_monitor == 'testing':
+            logger.info('Alert Message:    ' + alert_message)
+            logger.info('Alert Submessage: ' + str(alert_submessage))
 
         logger.info('Heartbeat monitor stopped successfully.')
 
@@ -447,24 +479,6 @@ class HeartbeatMonitor:
     def monitor(self):
         if self.use_json_storage == True:
             try:
-                alert_message = 'Heartbeat monitor *_ACTIVATED_* at ' + str(datetime.datetime.now()) + '.'
-
-                if self.flatline_alerts_only == True:
-                    alert_submessage = 'Regular heartbeat alerts disabled. Only sending alerts on flatline detection.'
-
-                else:
-                    alert_submessage = None
-
-                if self.heartbeat_monitor == 'slack':
-                    alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
-                                                                     message=alert_message, submessage=alert_submessage, status_message=True)
-
-                    logger.debug('alert_result: ' + str(alert_result))
-
-                elif self.heartbeat_monitor == 'testing':
-                    logger.info('Alert Message:    ' + alert_message)
-                    logger.info('Alert Submessage: ' + str(alert_submessage))
-
                 json_modified_time = os.stat(self.json_save_file).st_mtime
 
                 self.monitor_isrunning = True
@@ -515,7 +529,9 @@ class HeartbeatMonitor:
                             json_data = HeartbeatMonitor.read_write_json(self, self.json_save_data)
                             logger.debug('json_data[\'status\']: ' + str(json_data['status']))
 
-                    if self.kill_monitor == True:
+                    if self.kill_monitor == True:   # This doesn't get executed?
+                        logger.debug('Killing monitor loop.')
+
                         break
 
                     time.sleep(1)
@@ -530,6 +546,7 @@ class HeartbeatMonitor:
                 self.monitor_isrunning = False
                 logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
 
+                """
                 alert_message = 'Heartbeat monitor *_DEACTIVATED_* at ' + str(datetime.datetime.now()) + '.'
 
                 if self.heartbeat_monitor == 'slack':
@@ -540,6 +557,7 @@ class HeartbeatMonitor:
                 elif self.heartbeat_monitor == 'testing':
                     logger.info('Alert Message:    ' + alert_message)
                     logger.info('Alert Submessage: ' + alert_submessage)
+                """
 
         else:
             self.monitor_states['kill'] = False
@@ -573,6 +591,8 @@ class HeartbeatMonitor:
                 while (True):
                     if (datetime.datetime.now() - self.monitor_states['heartbeat_last']) > self.heartbeat_timeout and (datetime.datetime.now() - self.monitor_states['flatline_last']) > self.flatline_timeout:
                         # ALERT REQUIRED (HEARTBEAT TIME RESET BY CALLING HeartbeatMonitor.heartbeat())
+
+                        logger.warning('Flatline event detected for ' + self.module_name + '!')
 
                         heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()) / 60)
 
@@ -701,9 +721,9 @@ class HeartbeatMonitor:
 if __name__ == '__main__':
     test_config_path = '../../TeslaBot/config/config.ini'
 
-    test_timeout = 1
+    test_timeout = 0.25
 
-    test_flatline_timeout = 5
+    test_flatline_timeout = 1
 
     hb = HeartbeatMonitor(module='Testing', monitor='slack', config_path=test_config_path,
                           timeout=test_timeout, flatline_timeout=test_flatline_timeout,
@@ -735,7 +755,7 @@ if __name__ == '__main__':
             if x < 2:
                 time.sleep(5)
 
-        logger.debug('Sleeping for >' + str(test_timeout) + ' minute to trigger heartbeat flatline alert.')
+        logger.debug('Sleeping for >' + str(test_timeout) + ' min to trigger heartbeat flatline alert.')
 
         test_delay = (test_timeout * 60) + 1
 

@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='heartbeatmonitor',
-    version='0.1a12',   # ALREADY MOVED FROM 10 --> 11
+    version='0.1a13',
     author='Hunter M. Allen',
     author_email='allenhm@gmail.com',
     license='MIT',
