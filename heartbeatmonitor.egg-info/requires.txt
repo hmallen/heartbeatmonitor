@@ -1,2 +1,0 @@
-dateutil>=2.7.3
-slackclient>=1.2.1
