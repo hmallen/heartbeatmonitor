@@ -1,51 +1,114 @@
 import datetime
+import dateutil.parser
 import json
 import logging
 from multiprocessing import Process, Manager
 import multiprocessing
+import os
 import time
 
-#logging.basicConfig()
+logging.basicConfig()
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
 #config_path = '../../config/config.ini'
 
 
 class HeartbeatMonitor:
-    def __init__(self, module, monitor, timeout, flatline_timeout, config_path=None, flatline_alerts_only=False, test_channel=False):
+    def __init__(self, module, monitor, timeout, flatline_timeout,
+                 use_json_storage=True, json_directory='json/',
+                 config_path=None, flatline_alerts_only=False, test_channel=False):
         self.module_name = module
 
         self.heartbeat_monitor = monitor
 
-        self.timeout_delta = datetime.timedelta(minutes=timeout)
+        self.heartbeat_timeout = datetime.timedelta(minutes=timeout)
 
-        #self.monitor_states['heartbeat_last'] = datetime.datetime.now()
+        self.heartbeat_delta = datetime.timedelta(seconds=0)
+
+        self.heartbeat_last = datetime.datetime.now()
+
+        self.flatline_timeout = datetime.timedelta(minutes=flatline_timeout)
 
         self.flatline_delta = datetime.timedelta(minutes=flatline_timeout)
+
+        self.flatline_last = datetime.datetime.now() - self.flatline_delta
+
+        #self.monitor_states['heartbeat_last'] = datetime.datetime.now()
 
         #self.monitor_states['flatline_last'] = datetime.datetime.now() - self.flatline_delta
 
         self.flatline_alerts_only = flatline_alerts_only
 
-        self.heartbeat_delta = datetime.timedelta(seconds=0)
+        self.use_json_storage = use_json_storage
 
-        self.multiprocessing_manager = Manager()
+        if self.use_json_storage == True:
+            self.json_save_file = json_directory + 'heartbeats_' + module + '.json'
 
-        #self.multiprocessing_manager = DataManager.ShareManager()
+            if not os.path.exists(json_directory):
+                os.mkdir(json_directory)
 
-        #self.multiprocessing_manager.start(signal.signal, (signal.SIGINT, signal.SIG_IGN))
+            self.json_save_data = {'module': module,
+                                   'heartbeat_timeout': self.heartbeat_timeout,
+                                   'heartbeat_last': self.heartbeat_last,
+                                   'heartbeat_delta': self.heartbeat_delta,
+                                   'flatline_timeout': self.flatline_timeout,
+                                   'flatline_last': self.flatline_last,
+                                   'flatline_delta': self.flatline_delta}
 
-        self.monitor_states = self.multiprocessing_manager.dict({'heartbeat_last': datetime.datetime.now(),
-                                                                 'flatline_last': datetime.datetime.now() - self.flatline_delta,
-                                                                 'kill' : False,
-                                                                 'isrunning': False})
+            create_new_file = False
 
-        self.monitor_heartbeat = Process(target=HeartbeatMonitor.monitor, args=(self,))
+            if not os.path.exists(self.json_save_file):
+                create_new_file = True
 
-        #self.kill_monitor = False
+            else:
+                try:
+                    #with open(self.json_save_file, 'r', encoding='utf-8') as file:
+                        #json_data_old = json.load(file)
 
-        #self.monitor_isrunning = False
+                    json_data = HeartbeatMonitor.read_write_json(self)
+                    logger.debug('json_data[\'status\']: ' + str(json_data['status']))
+
+                    json_data_old = json_data['data']
+
+                    if (datetime.datetime.now() - json_data_old['heartbeat_last']) > self.heartbeat_timeout:
+                        create_new_file = True
+
+                    else:
+                        self.json_save_data = json_data_old
+
+                except Exception as e:
+                    logger.exception('Exception while loading data from json file. Removing and creating new file.')
+                    logger.exception(e)
+
+                    create_new_file = True
+
+            if create_new_file == True:
+                #with open(self.json_save_file, 'w', encoding='utf-8') as file:
+                    #json.dump(self.json_save_data, file, indent=4, sort_keys=True, ensure_ascii=False)
+
+                json_data = HeartbeatMonitor.read_write_json(self, self.json_save_data)
+                logger.debug('json_data[\'status\']: ' + str(json_data['status']))
+
+            self.kill_monitor = False
+
+            self.monitor_isrunning = False
+
+            self.monitor_heartbeat = Process(target=HeartbeatMonitor.monitor, args=(self,))
+
+        else:
+            self.multiprocessing_manager = Manager()
+
+            #self.multiprocessing_manager = DataManager.ShareManager()
+
+            #self.multiprocessing_manager.start(signal.signal, (signal.SIGINT, signal.SIG_IGN))
+
+            self.monitor_states = self.multiprocessing_manager.dict({'heartbeat_last': datetime.datetime.now(),
+                                                                     'flatline_last': datetime.datetime.now() - self.flatline_delta,
+                                                                     'kill' : False,
+                                                                     'isrunning': False})
+
+            self.monitor_heartbeat = Process(target=HeartbeatMonitor.monitor, args=(self,))
 
         if self.heartbeat_monitor == 'slack':
             if config_path == None:
@@ -126,184 +189,459 @@ class HeartbeatMonitor:
 
                         sys.exit(1)
 
-            logger.debug('Slack channel for heartbeat alerts: #' + slack_channel_heartbeat +
+            logger.debug('Slack channel for heartbeat alerts: #' + slack_channel_targets['heartbeat'] +
                         ' (' + self.slack_alert_channel_id_heartbeat + ')')
 
         elif self.heartbeat_monitor == 'testing':
             logger.info('Using testing heartbeat monitor. Outputting to console.')
 
 
+    def read_write_json(self, json_data=None):
+        # Convert to and from types encodable by json module
+        def convert_datetime(dt):
+            dt_modified = -1
+
+            try:
+                if isinstance(dt, datetime.datetime):
+                    logger.debug('[convert_datetime] datetime.datetime')
+
+                    dt_modified = dt.isoformat()
+
+                elif isinstance(dt, str):
+                    logger.debug('[convert_datetime] str')
+
+                    dt_modified = dateutil.parser.parse(dt)
+
+                elif isinstance(dt, datetime.timedelta):
+                    logger.debug('[convert_datetime] datetime.timedelta')
+
+                    dt_modified = dt.total_seconds()
+
+                elif isinstance(dt, float):
+                    logger.debug('[convert_datetime] float')
+
+                    dt_modified = datetime.timedelta(seconds=dt)
+
+                else:
+                    logger.error('Incorrect type passed to convert_datetime().')
+
+            except Exception as e:
+                logger.exception('Exception while converting date/time.')
+                logger.exception(e)
+
+            finally:
+                return dt_modified
+
+        """
+        {'module': module,
+         'heartbeat_timeout': self.heartbeat_timeout,
+         'heartbeat_last': self.heartbeat_last,
+         'heartbeat_delta': self.heartbeat_delta,
+         'flatline_timeout': self.flatline_timeout,
+         'flatline_last': self.flatline_last,
+         'flatline_delta': self.flatline_delta}
+        """
+
+        json_converted_return = {'data': None, 'status': None}
+
+        conversion_list = ['heartbeat_last', 'heartbeat_timeout', 'heartbeat_delta',
+                           'flatline_last', 'flatline_timeout', 'flatline_delta']
+
+        json_data_converted = {}
+
+        try:
+            #if operation == 'read':
+            if json_data == None:
+                with open(self.json_save_file, 'r', encoding='utf-8') as file:
+                    json_data_raw = json.loads(file.read())
+
+                for data in json_data_raw:
+                    if data in conversion_list:
+                        if data == 'heartbeat_last' or data == 'flatline_last':
+                            json_data_converted[data] = dateutil.parser.parse(json_data_raw[data])
+
+                        elif data == 'heartbeat_timeout' or data == 'heartbeat_delta' or data == 'flatline_timeout' or data == 'flatline_delta':
+                            json_data_converted[data] = datetime.timedelta(seconds=json_data_raw[data])
+
+                        else:
+                            logger.error('Unknown json data key.')
+
+                    else:
+                        json_data_converted[data] = json_data_raw[data]
+
+                json_converted_return['data'] = json_data_converted
+
+                json_converted_return['status'] = True
+
+            #elif operation == 'write':
+            else:
+                for data in json_data:
+                    if data in conversion_list:
+                        json_data_converted[data] = convert_datetime(json_data[data])
+
+                    else:
+                        json_data_converted[data] = json_data[data]
+
+                with open(self.json_save_file, 'w', encoding='utf-8') as file:
+                    json.dump(json_data_converted, file, indent=4, sort_keys=True, ensure_ascii=False)
+
+                json_converted_return['status'] = True
+
+            #else:
+                #logger.error('Invalid operation type passed to HeartbeatMonitor.read_write_json().')
+
+        except Exception as e:
+            logger.exception('Exception in HeartbeatMonitor.read_write_json()')
+            logger.exception(e)
+
+            json_converted_return['status'] = False
+
+        finally:
+            return json_converted_return
+
+
     def start_monitor(self):
-        #logger.info('Starting heartbeat monitor.')
+        logger.debug('Starting heartbeat monitor.')
 
         self.monitor_heartbeat.start()
 
+        time.sleep(5)   # Need more elegant solution to determine when monitor is fully started
+
+        #if self.use_json_storage == True:
+            #HeartbeatMonitor.monitor(self)
+            #self.monitor_heartbeat.start()
+
+        #else:
+            #self.monitor_heartbeat.start()
+
+        logger.debug('Heartbeat monitor active.')
+
 
     def stop_monitor(self):
-        logger.info('Stopping heartbeat monitor.')
+        logger.debug('Stopping heartbeat monitor.')
 
-        #self.kill_monitor = True
-        #logger.debug('[stop_monitor] self.kill_monitor: ' + str(self.kill_monitor))
+        if self.use_json_storage == True:
+            self.kill_monitor = True
+            logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
 
-        self.monitor_states['kill'] = True
-        logger.debug('[stop_monitor] self.monitor_states[\'kill\']: ' + str(self.monitor_states['kill']))
+            while self.monitor_isrunning == True:
+                time.sleep(0.1)
 
-        #while self.monitor_isrunning == True:
-        while self.monitor_states['isrunning'] == True:
-            time.sleep(0.1)
+            self.monitor_heartbeat.terminate()
 
-        logger.info('Gathering active child processes.')
+            self.monitor_heartbeat.join()
 
-        active_processes = multiprocessing.active_children()
+        else:
+            #self.kill_monitor = True
+            #logger.debug('[stop_monitor] self.kill_monitor: ' + str(self.kill_monitor))
 
-        logger.info('Terminating all child processes.')
+            self.monitor_states['kill'] = True
+            logger.debug('[stop_monitor] self.monitor_states[\'kill\']: ' + str(self.monitor_states['kill']))
 
-        for proc in active_processes:
-            logger.debug('Child Process: ' + str(proc))
+            #while self.monitor_isrunning == True:
+            while self.monitor_states['isrunning'] == True:
+                time.sleep(0.1)
 
-            logger.info('Terminating heartbeat monitor process.')
+            logger.info('Gathering active child processes.')
 
-            proc.terminate()
+            active_processes = multiprocessing.active_children()
 
-            logger.info('Joining terminated process to ensure clean exit.')
+            logger.info('Terminating all child processes.')
 
-            proc.join()
+            for proc in active_processes:
+                logger.debug('Child Process: ' + str(proc))
 
-        #self.monitor_heartbeat.join()
+                logger.info('Terminating heartbeat monitor process.')
+
+                proc.terminate()
+
+                logger.info('Joining terminated process to ensure clean exit.')
+
+                proc.join()
+
+            #self.monitor_heartbeat.join()
 
         logger.info('Heartbeat monitor stopped successfully.')
 
 
     def heartbeat(self):
-        self.heartbeat_delta = (datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()
-        logger.debug('self.heartbeat_delta: ' + str(self.heartbeat_delta))
+        if self.use_json_storage == True:
+            self.heartbeat_delta = datetime.datetime.now() - self.heartbeat_last
+            logger.debug('self.heartbeat_delta: ' + str(self.heartbeat_delta))
 
-        self.monitor_states['heartbeat_last'] = datetime.datetime.now()
-        logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
+            self.heartbeat_last = datetime.datetime.now()
+            logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
 
-        if self.flatline_alerts_only == False:
-            heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()) / 60)
+            self.json_save_data['heartbeat_delta'] = self.heartbeat_delta
 
-            alert_submessage = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
+            self.json_save_data['heartbeat_last'] = self.heartbeat_last
 
-            alert_message = str(self.monitor_states['heartbeat_last'])
+            logger.debug('Dumping heartbeat data to json file.')
 
-            logger.info(alert_message)
+            #with open(self.json_save_file, 'w', encoding='utf-8') as file:
+                #json.dump(self.json_save_data, file, indent=4, sort_keys=True, ensure_ascii=False)
 
-            if self.heartbeat_monitor == 'slack':
-                alert_result = HeartbeatMonitor.send_slack_alert(self,
-                                                                 channel_id=self.slack_alert_channel_id_heartbeat,
-                                                                 message=alert_message,
-                                                                 submessage=alert_submessage,
-                                                                 flatline=False)
-                logger.debug('alert_result: ' + str(alert_result))
+            json_status = HeartbeatMonitor.read_write_json(self, self.json_save_data)
+            logger.debug('json_status[\'status\']: ' + str(json_status['status']))
 
-            elif self.heartbeat_monitor == 'testing':
-                logger.info('Alert Message:    ' + alert_message)
-                logger.info('Alert Submessage: ' + alert_submessage)
+            if self.flatline_alerts_only == False:
+                alert_message = str(self.heartbeat_last)
+
+                logger.debug('alert_message: ' + alert_message)
+
+                heartbeat_last_delta = "{:.2f}".format(float(self.heartbeat_delta.total_seconds()) / 60)
+
+                alert_submessage = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
+
+                logger.debug('alert_submessage: ' + alert_submessage)
+
+                if self.heartbeat_monitor == 'slack':
+                    alert_result = HeartbeatMonitor.send_slack_alert(self,
+                                                                     channel_id=self.slack_alert_channel_id_heartbeat,
+                                                                     message=alert_message,
+                                                                     submessage=alert_submessage,
+                                                                     flatline=False)
+
+                    logger.debug('alert_result: ' + str(alert_result))
+
+                elif self.heartbeat_monitor == 'testing':
+                    logger.info('Alert Message:    ' + alert_message)
+                    logger.info('Alert Submessage: ' + alert_submessage)
+
+            else:
+                logger.debug('Skipping Slack alert for regular heartbeat trigger.')
 
         else:
-            logger.debug('Skipping Slack alert for regular heartbeat trigger.')
+            #self.heartbeat_delta = (datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()
+            self.heartbeat_delta = datetime.datetime.now() - self.monitor_states['heartbeat_last']
+            logger.debug('self.heartbeat_delta: ' + str(self.heartbeat_delta))
+
+            self.monitor_states['heartbeat_last'] = datetime.datetime.now()
+            logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
+
+            if self.flatline_alerts_only == False:
+                heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()) / 60)
+
+                alert_submessage = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
+
+                alert_message = str(self.monitor_states['heartbeat_last'])
+
+                logger.info(alert_message)
+
+                if self.heartbeat_monitor == 'slack':
+                    alert_result = HeartbeatMonitor.send_slack_alert(self,
+                                                                     channel_id=self.slack_alert_channel_id_heartbeat,
+                                                                     message=alert_message,
+                                                                     submessage=alert_submessage,
+                                                                     flatline=False)
+                    logger.debug('alert_result: ' + str(alert_result))
+
+                elif self.heartbeat_monitor == 'testing':
+                    logger.info('Alert Message:    ' + alert_message)
+                    logger.info('Alert Submessage: ' + alert_submessage)
+
+            else:
+                logger.debug('Skipping Slack alert for regular heartbeat trigger.')
 
 
     def monitor(self):
-        self.monitor_states['kill'] = False
-        logger.debug('[stop_monitor] self.monitor_states[\'kill\']: ' + str(self.monitor_states['kill']))
+        if self.use_json_storage == True:
+            try:
+                alert_message = 'Heartbeat monitor *_ACTIVATED_* at ' + str(datetime.datetime.now()) + '.'
 
-        self.monitor_states['isrunning'] = True
-        logger.debug('self.monitor_states[\'isrunning\']: ' + str(self.monitor_states['isrunning']))
+                if self.flatline_alerts_only == True:
+                    alert_submessage = 'Regular heartbeat alerts disabled. Only sending alerts on flatline detection.'
 
-        try:
-            self.monitor_states['heartbeat_last'] = datetime.datetime.now()
-            logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
+                else:
+                    alert_submessage = None
 
-            alert_message = 'Heartbeat monitor *_ACTIVATED_* at ' + str(self.monitor_states['heartbeat_last']) + '.'
+                if self.heartbeat_monitor == 'slack':
+                    alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
+                                                                     message=alert_message, submessage=alert_submessage, status_message=True)
 
-            if self.flatline_alerts_only == True:
-                alert_submessage = 'Regular heartbeat alerts disabled. Only sending alerts on flatline detection.'
+                    logger.debug('alert_result: ' + str(alert_result))
 
-            else:
-                alert_submessage = None
+                elif self.heartbeat_monitor == 'testing':
+                    logger.info('Alert Message:    ' + alert_message)
+                    logger.info('Alert Submessage: ' + str(alert_submessage))
 
-            if self.heartbeat_monitor == 'slack':
-                alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
-                                                                 message=alert_message, submessage=alert_submessage, status_message=True)
-                logger.debug('alert_result: ' + str(alert_result))
+                json_modified_time = os.stat(self.json_save_file).st_mtime
 
-            elif self.heartbeat_monitor == 'testing':
-                logger.info('Alert Message:    ' + alert_message)
-                logger.info('Alert Submessage: ' + str(alert_submessage))
+                self.monitor_isrunning = True
 
-            while (True):
-                if (datetime.datetime.now() - self.monitor_states['heartbeat_last']) > self.timeout_delta and (datetime.datetime.now() - self.monitor_states['flatline_last']) > self.flatline_delta:
-                    # ALERT REQUIRED (HEARTBEAT TIME RESET BY CALLING )
+                while (True):
+                    json_current_modified_time = os.stat(self.json_save_file).st_mtime
 
-                    heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()) / 60)
+                    if json_current_modified_time != json_modified_time:
+                        logger.debug('JSON heartbeat save file updated.')
 
-                    alert_message = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
+                        #with open(self.json_save_file, 'r', encoding='utf-8') as file:
+                            #self.json_save_data = json.load(file)
 
-                    if self.heartbeat_monitor == 'slack':
-                        alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat, message=alert_message, flatline=True)
-                        logger.debug('alert_result: ' + str(alert_result))
+                        json_data = HeartbeatMonitor.read_write_json(self)
+                        logger.debug('json_data[\'status\']: ' + str(json_data['status']))
 
-                    elif self.heartbeat_monitor == 'testing':
-                        logger.info('Alert Message:    ' + alert_message)
-                        #logger.info('Alert Submessage: ' + alert_submessage)
+                        self.json_save_data = json_data['data']
 
-                    self.monitor_states['flatline_last'] = datetime.datetime.now()
-                    logger.debug('self.monitor_states[\'flatline_last\']: ' + str(self.monitor_states['flatline_last']))
+                        self.heartbeat_last = self.json_save_data['heartbeat_last']
+                        self.flatline_last = self.json_save_data['flatline_last']
 
-                #if self.kill_monitor == True:
-                if self.monitor_states['kill'] == True:
-                    #logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
-                    logger.debug('self.monitor_states[\'kill\']: ' + str(self.monitor_states['kill']))
+                        json_modified_time = json_current_modified_time
 
-                    logger.debug('Breaking from monitor loop.')
+                    if (datetime.datetime.now() - self.heartbeat_last) > self.heartbeat_timeout:
+                        if (datetime.datetime.now() - self.flatline_last) > self.flatline_timeout:
+                            heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.heartbeat_last).total_seconds()) / 60)
 
-                    break
+                            alert_message = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
 
-                time.sleep(0.1)
+                            if self.heartbeat_monitor == 'slack':
+                                alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat, message=alert_message, flatline=True)
+                                logger.debug('alert_result: ' + str(alert_result))
 
-            self.monitor_states['heartbeat_last'] = datetime.datetime.now()
-            logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
+                            elif self.heartbeat_monitor == 'testing':
+                                logger.info('Alert Message:    ' + alert_message)
+                                #logger.info('Alert Submessage: ' + alert_submessage)
 
-        except multiprocessing.ProcessError as e:
-            logger.exception('multiprocessing.ProcessError raised in monitor().')
-            logger.exception(e)
+                            self.flatline_last = datetime.datetime.now()
+                            logger.debug('self.flatline_last: ' + str(self.flatline_last))
 
-            #raise
+                            self.json_save_data['flatline_last'] = self.flatline_last
 
-        except Exception as e:
-            logger.exception('Exception raised in heartbeat main loop.')
-            logger.exception(e)
+                            logger.debug('Saving flatline alert time to json file.')
 
-            #raise
+                            #with open(self.json_save_file, 'w', encoding='utf-8') as file:
+                                #json.dump(self.json_save_data, file, indent=4, sort_keys=True, ensure_ascii=False)
 
-        except KeyboardInterrupt:
-            logger.debug('KeyboardInterrupt in heartbeat main loop.')
+                            json_data = HeartbeatMonitor.read_write_json(self, self.json_save_data)
+                            logger.debug('json_data[\'status\']: ' + str(json_data['status']))
 
-            #raise
+                    if self.kill_monitor == True:
+                        break
 
-        finally:
-            #self.monitor_isrunning = False
-            #logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
+                    time.sleep(1)
 
-            self.monitor_states['isrunning'] = False
+                logger.debug('Exited monitor loop.')
+
+            except Exception as e:
+                logger.exception('Exception raised in main heartbeat monitor loop.')
+                logger.exception(e)
+
+            finally:
+                self.monitor_isrunning = False
+                logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
+
+                alert_message = 'Heartbeat monitor *_DEACTIVATED_* at ' + str(datetime.datetime.now()) + '.'
+
+                if self.heartbeat_monitor == 'slack':
+                    alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
+                                                                     message=alert_message, submessage=alert_submessage, status_message=True)
+                    logger.debug('alert_result: ' + str(alert_result))
+
+                elif self.heartbeat_monitor == 'testing':
+                    logger.info('Alert Message:    ' + alert_message)
+                    logger.info('Alert Submessage: ' + alert_submessage)
+
+        else:
+            self.monitor_states['kill'] = False
+            logger.debug('[stop_monitor] self.monitor_states[\'kill\']: ' + str(self.monitor_states['kill']))
+
+            self.monitor_states['isrunning'] = True
             logger.debug('self.monitor_states[\'isrunning\']: ' + str(self.monitor_states['isrunning']))
 
-            self.monitor_states['heartbeat_last'] = datetime.datetime.now()
-            logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
+            try:
+                self.monitor_states['heartbeat_last'] = datetime.datetime.now()
+                logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
 
-            alert_message = 'Heartbeat monitor *_DEACTIVATED_* at ' + str(self.monitor_states['heartbeat_last']) + '.'
+                alert_message = 'Heartbeat monitor *_ACTIVATED_* at ' + str(self.monitor_states['heartbeat_last']) + '.'
 
-            if self.heartbeat_monitor == 'slack':
-                alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
-                                                                 message=alert_message, submessage=alert_submessage, status_message=True)
-                logger.debug('alert_result: ' + str(alert_result))
+                if self.flatline_alerts_only == True:
+                    alert_submessage = 'Regular heartbeat alerts disabled. Only sending alerts on flatline detection.'
 
-            elif self.heartbeat_monitor == 'testing':
-                logger.info('Alert Message:    ' + alert_message)
-                logger.info('Alert Submessage: ' + alert_submessage)
+                else:
+                    alert_submessage = None
+
+                if self.heartbeat_monitor == 'slack':
+                    alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
+                                                                     message=alert_message, submessage=alert_submessage, status_message=True)
+
+                    logger.debug('alert_result: ' + str(alert_result))
+
+                elif self.heartbeat_monitor == 'testing':
+                    logger.info('Alert Message:    ' + alert_message)
+                    logger.info('Alert Submessage: ' + str(alert_submessage))
+
+                while (True):
+                    if (datetime.datetime.now() - self.monitor_states['heartbeat_last']) > self.heartbeat_timeout and (datetime.datetime.now() - self.monitor_states['flatline_last']) > self.flatline_timeout:
+                        # ALERT REQUIRED (HEARTBEAT TIME RESET BY CALLING HeartbeatMonitor.heartbeat())
+
+                        heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()) / 60)
+
+                        alert_message = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
+
+                        if self.heartbeat_monitor == 'slack':
+                            alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat, message=alert_message, flatline=True)
+                            logger.debug('alert_result: ' + str(alert_result))
+
+                        elif self.heartbeat_monitor == 'testing':
+                            logger.info('Alert Message:    ' + alert_message)
+                            #logger.info('Alert Submessage: ' + alert_submessage)
+
+                        self.monitor_states['flatline_last'] = datetime.datetime.now()
+                        logger.debug('self.monitor_states[\'flatline_last\']: ' + str(self.monitor_states['flatline_last']))
+
+                    #if self.kill_monitor == True:
+                    if self.monitor_states['kill'] == True:
+                        #logger.debug('self.kill_monitor: ' + str(self.kill_monitor))
+                        logger.debug('self.monitor_states[\'kill\']: ' + str(self.monitor_states['kill']))
+
+                        logger.debug('Breaking from monitor loop.')
+
+                        break
+
+                    time.sleep(0.1)
+
+                self.monitor_states['heartbeat_last'] = datetime.datetime.now()
+                logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
+
+            except multiprocessing.ProcessError as e:
+                logger.exception('multiprocessing.ProcessError raised in monitor().')
+                logger.exception(e)
+
+                #raise
+
+            except Exception as e:
+                logger.exception('Exception raised in heartbeat main loop.')
+                logger.exception(e)
+
+                #raise
+
+            except KeyboardInterrupt:
+                logger.debug('KeyboardInterrupt in heartbeat main loop.')
+
+                #raise
+
+            """
+            finally:
+                #self.monitor_isrunning = False
+                #logger.debug('self.monitor_isrunning: ' + str(self.monitor_isrunning))
+
+                self.monitor_states['isrunning'] = False
+                logger.debug('self.monitor_states[\'isrunning\']: ' + str(self.monitor_states['isrunning']))
+
+                self.monitor_states['heartbeat_last'] = datetime.datetime.now()
+                logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
+
+                alert_message = 'Heartbeat monitor *_DEACTIVATED_* at ' + str(self.monitor_states['heartbeat_last']) + '.'
+
+                if self.heartbeat_monitor == 'slack':
+                    alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
+                                                                     message=alert_message, submessage=alert_submessage, status_message=True)
+                    logger.debug('alert_result: ' + str(alert_result))
+
+                elif self.heartbeat_monitor == 'testing':
+                    logger.info('Alert Message:    ' + alert_message)
+                    logger.info('Alert Submessage: ' + alert_submessage)
+            """
 
 
     def send_slack_alert(self, channel_id, message, submessage=None, flatline=False, status_message=False):
@@ -361,24 +699,31 @@ class HeartbeatMonitor:
 
 
 if __name__ == '__main__':
+    test_config_path = '../../TeslaBot/config/config.ini'
+
     test_timeout = 1
 
     test_flatline_timeout = 5
 
-    hb = HeartbeatMonitor(module='Testing', monitor='slack', config_path=config_path,
+    hb = HeartbeatMonitor(module='Testing', monitor='slack', config_path=test_config_path,
                           timeout=test_timeout, flatline_timeout=test_flatline_timeout,
-                          test_channel=True)
+                          flatline_alerts_only=False, test_channel=True)
 
     try:
         hb.start_monitor()
 
+        """
         while (True):
-            logger.debug('hb.monitor_states[\'isrunning\']: ' + str(hb.monitor_states['isrunning']))
+            #logger.debug('hb.monitor_states[\'isrunning\']: ' + str(hb.monitor_states['isrunning']))
 
-            if hb.monitor_states['isrunning'] == True:
+            logger.debug('hb.monitor_isrunning: ' + str(hb.monitor_isrunning))
+
+            #if hb.monitor_states['isrunning'] == True:
+            if hb.monitor_isrunning == True:
                 break
 
             time.sleep(1)
+        """
 
         logger.info('Heartbeat monitor ready.')
 
@@ -400,9 +745,9 @@ if __name__ == '__main__':
 
         logger.debug('Done.')
 
-    except multiprocessing.ProcessError as e:
-        logger.exception('multiprocessing.ProcessError raised in main.')
-        logger.exception(e)
+    #except multiprocessing.ProcessError as e:
+        #logger.exception('multiprocessing.ProcessError raised in main.')
+        #logger.exception(e)
 
     except Exception as e:
         logger.exception('Exception raised.')

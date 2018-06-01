@@ -1,0 +1,9 @@
+{
+    'module': STRING,
+    'heartbeat_timeout': TIMEDELTA,
+    'heartbeat_last': DATETIME,
+    'heartbeat_delta': TIMEDELTA,
+    'flatline_timeout': TIMEDELTA,
+    'flatline_last': DATETIME,
+    'flatline_delta': TIMEDELTA
+}

@@ -1,0 +1,9 @@
+{
+    "flatline_delta": 300.0,
+    "flatline_last": "2018-05-31T23:46:03.917034",
+    "flatline_timeout": 300.0,
+    "heartbeat_delta": 5.27821,
+    "heartbeat_last": "2018-05-31T23:45:03.069371",
+    "heartbeat_timeout": 60.0,
+    "module": "Testing"
+}
