@@ -16,7 +16,7 @@ logger.setLevel(logging.DEBUG)
 
 class HeartbeatMonitor:
     def __init__(self, module, monitor, timeout, flatline_timeout,
-                 use_json_storage=True, json_directory='json/',
+                 use_json_storage=True, json_directory='json/heartbeatmonitor/',
                  config_path=None, flatline_alerts_only=False, test_channel=False):
         self.module_name = module
 
@@ -46,7 +46,8 @@ class HeartbeatMonitor:
             self.json_save_file = json_directory + 'heartbeats_' + module + '.json'
 
             if not os.path.exists(json_directory):
-                os.mkdir(json_directory)
+                #os.mkdir(json_directory)
+                os.makedirs(json_directory, exist_ok=True)
 
             self.json_save_data = {'module': module,
                                    'heartbeat_timeout': self.heartbeat_timeout,
