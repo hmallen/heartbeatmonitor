@@ -397,7 +397,7 @@ class HeartbeatMonitor:
         logger.info('Heartbeat monitor stopped successfully.')
 
 
-    def heartbeat(self):
+    def heartbeat(self, message=None):
         if self.use_json_storage == True:
             self.heartbeat_delta = datetime.datetime.now() - self.heartbeat_last
             logger.debug('self.heartbeat_delta: ' + str(self.heartbeat_delta))
@@ -419,6 +419,9 @@ class HeartbeatMonitor:
 
             if self.flatline_alerts_only == False:
                 alert_message = str(self.heartbeat_last)
+
+                if message != None:
+                    alert_message += ' - (' + message + ')'
 
                 logger.debug('alert_message: ' + alert_message)
 
@@ -455,11 +458,16 @@ class HeartbeatMonitor:
             if self.flatline_alerts_only == False:
                 heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - self.monitor_states['heartbeat_last']).total_seconds()) / 60)
 
-                alert_submessage = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
-
                 alert_message = str(self.monitor_states['heartbeat_last'])
 
-                logger.info(alert_message)
+                if message != None:
+                    alert_message += ' - (' + message + ')'
+
+                logger.debug('alert_message: ' + alert_message)
+
+                alert_submessage = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
+
+                logger.debug('alert_submessage: ' + alert_submessage)
 
                 if self.heartbeat_monitor == 'slack':
                     alert_result = HeartbeatMonitor.send_slack_alert(self,
@@ -749,9 +757,11 @@ if __name__ == '__main__':
         logger.info('Heartbeat monitor ready.')
 
         for x in range(0, 2):
-            logger.debug('Heartbeat #' + str(x + 1))
+            heartbeat_message = 'Heartbeat #' + str(x + 1)
 
-            hb.heartbeat()
+            logger.debug('heartbeat_message: ' + heartbeat_message)
+
+            hb.heartbeat(message=heartbeat_message)
 
             if x < 2:
                 time.sleep(5)
