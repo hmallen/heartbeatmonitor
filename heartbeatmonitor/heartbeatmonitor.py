@@ -547,9 +547,22 @@ class HeartbeatMonitor:
 
                 logger.debug('Exited monitor loop.')
 
-            except Exception as e:
-                logger.exception('Exception raised in main heartbeat monitor loop.')
+            except multiprocessing.ProcessError as e:
+                logger.exception('multiprocessing.ProcessError raised in heartbeat monitor.')
                 logger.exception(e)
+
+                #raise
+
+            except Exception as e:
+                logger.exception('Exception raised in heartbeat monitor.')
+                logger.exception(e)
+
+                #raise
+
+            except KeyboardInterrupt:
+                logger.debug('KeyboardInterrupt in heartbeat monitor.')
+
+                #raise
 
             finally:
                 self.monitor_isrunning = False
@@ -633,19 +646,19 @@ class HeartbeatMonitor:
                 logger.debug('self.monitor_states[\'heartbeat_last\']: ' + str(self.monitor_states['heartbeat_last']))
 
             except multiprocessing.ProcessError as e:
-                logger.exception('multiprocessing.ProcessError raised in monitor().')
+                logger.exception('multiprocessing.ProcessError raised in heartbeat monitor.')
                 logger.exception(e)
 
                 #raise
 
             except Exception as e:
-                logger.exception('Exception raised in heartbeat main loop.')
+                logger.exception('Exception raised in heartbeat monitor.')
                 logger.exception(e)
 
                 #raise
 
             except KeyboardInterrupt:
-                logger.debug('KeyboardInterrupt in heartbeat main loop.')
+                logger.debug('KeyboardInterrupt in heartbeat monitor.')
 
                 #raise
 
