@@ -177,15 +177,17 @@ class Heartbeat:
 
 
     def start_monitor(self):
-        #popen_string = 'python monitor.py -c ' + self.config_path + ' -d ' + self.json_directory
-
-        monitor_log = self.module_name.lower() + '_monitor.log'
-
-        popen_args = ['python', 'monitor.py', '-c', self.config_path, '-d', self.json_directory, '>', monitor_log]
-
         try:
+            #popen_string = 'python monitor.py -c ' + self.config_path + ' -d ' + self.json_directory
+
+            monitor_log = self.module_name.lower() + '_monitor.log'
+
+            popen_args = ['python', 'monitor.py', '-c', self.config_path, '-d', self.json_directory]#, '>', monitor_log]
+
+            stdout_file = open('monitor.out', 'w', encoding='utf-8')
+
             #subprocess.Popen(popen_string)
-            subprocess.Popen(popen_args)
+            subprocess.Popen(popen_args, stdout=stdout_file, stderr=subprocess.STDOUT)
 
             # SHOULD USE COMMUNICATE OR SOMETHING INSTEAD OF DELAY
             time.sleep(5)
