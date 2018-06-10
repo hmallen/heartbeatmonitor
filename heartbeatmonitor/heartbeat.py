@@ -167,85 +167,123 @@ class Heartbeat:
         ##########################################
         #### START MONITOR HERE IF NOT ACTIVE ####
         ##########################################
-
+        """
         self.active_file = self.json_directory + 'ACTIVE'
 
         if not os.path.exists(self.active_file):
             logger.info('Monitor not currently active. Starting monitor.')
 
             Heartbeat.start_monitor(self)
+        """
+
+        self.heartbeat_enabled = False
 
 
-    def start_monitor(self):
-        try:
-            #popen_string = 'python monitor.py -c ' + self.config_path + ' -d ' + self.json_directory
+    def enable_heartbeat(self):
+        def start_monitor():
+            try:
+                #popen_string = 'python monitor.py -c ' + self.config_path + ' -d ' + self.json_directory
 
-            monitor_log = self.module_name.lower() + '_monitor.log'
+                monitor_log = self.module_name.lower() + '_monitor.log'
 
-            popen_args = ['python', 'monitor.py', '-c', self.config_path, '-d', self.json_directory]#, '>', monitor_log]
+                popen_args = ['python', 'monitor.py', '-c', self.config_path, '-d', self.json_directory]#, '>', monitor_log]
 
-            stdout_file = open('monitor.out', 'w', encoding='utf-8')
+                stdout_file = open('monitor.out', 'w', encoding='utf-8')
 
-            #subprocess.Popen(popen_string)
-            subprocess.Popen(popen_args, stdout=stdout_file, stderr=subprocess.STDOUT)
+                #subprocess.Popen(popen_string)
+                subprocess.Popen(popen_args, stdout=stdout_file, stderr=subprocess.STDOUT)
 
-            # SHOULD USE COMMUNICATE OR SOMETHING INSTEAD OF DELAY
-            time.sleep(5)
+                # SHOULD USE COMMUNICATE OR SOMETHING INSTEAD OF DELAY
+                time.sleep(5)
 
-            logger.info('Monitor startup initiated.')
+                logger.info('Monitor startup initiated.')
 
-        except Exception as e:
-            logger.exception('Exception while starting monitor with Popen(). Exiting.')
-            logger.exception(e)
+            except Exception as e:
+                logger.exception('Exception while starting monitor with Popen(). Exiting.')
+                logger.exception(e)
 
-            sys.exit(1)
+                sys.exit(1)
+
+
+        logger.debug('Enabling heartbeat functions.')
+
+        self.active_file = self.json_directory + 'ACTIVE'
+
+        if not os.path.exists(self.active_file):
+            logger.info('Monitor not currently active. Starting monitor.')
+
+            start_monitor()
+
+        self.heartbeat_enabled = True
+
+        logger.info('Heartbeat functions enabled.')
+
+
+    def disable_heartbeat(self):
+        logger.debug('Disabling heartbeat functions.')
+
+        if os.path.exists(self.json_save_file):
+            logger.debug('Removing heartbeat file.')
+
+            os.remove(self.json_save_file)
+
+        else:
+            logger.warning('No json save file present when disabling heartbeat functions. An error may have occurred.')
+
+        self.heartbeat_enabled = False
+
+        logger.info('Heartbeat functions disabled.')
 
 
     def heartbeat(self, message=None):
-        heartbeat_delta = datetime.datetime.now() - self.heartbeat_last
-        logger.debug('heartbeat_delta: ' + str(heartbeat_delta))
+        if self.heartbeat_enabled == True:
+            heartbeat_delta = datetime.datetime.now() - self.heartbeat_last
+            logger.debug('heartbeat_delta: ' + str(heartbeat_delta))
 
-        self.heartbeat_last = datetime.datetime.now()
-        logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
+            self.heartbeat_last = datetime.datetime.now()
+            logger.debug('self.heartbeat_last: ' + str(self.heartbeat_last))
 
-        self.json_save_data['heartbeat_last'] = self.heartbeat_last
+            self.json_save_data['heartbeat_last'] = self.heartbeat_last
 
-        logger.debug('Dumping heartbeat data to json file.')
+            logger.debug('Dumping heartbeat data to json file.')
 
-        json_status = self.json_converter.write_json(json_data=self.json_save_data, json_file=self.json_save_file)
-        logger.debug('json_status[\'status\']: ' + str(json_status['status']))
+            json_status = self.json_converter.write_json(json_data=self.json_save_data, json_file=self.json_save_file)
+            logger.debug('json_status[\'status\']: ' + str(json_status['status']))
 
-        if self.flatline_alerts_only == False:
-            alert_message = str(self.heartbeat_last)
+            if self.flatline_alerts_only == False:
+                alert_message = str(self.heartbeat_last)
 
-            if message != None:
-                alert_message += ' - (' + message + ')'
+                if message != None:
+                    alert_message += ' - (' + message + ')'
 
-            logger.debug('alert_message: ' + alert_message)
+                logger.debug('alert_message: ' + alert_message)
 
-            alert_submessage = '*Last heartbeat:* ' + "{:.2f}".format(float(heartbeat_delta.total_seconds()) / 60) + ' minutes ago.'
+                alert_submessage = '*Last heartbeat:* ' + "{:.2f}".format(float(heartbeat_delta.total_seconds()) / 60) + ' minutes ago.'
 
-            logger.debug('alert_submessage: ' + alert_submessage)
+                logger.debug('alert_submessage: ' + alert_submessage)
 
-            if self.heartbeat_monitor == 'slack':
-                alert_result = Heartbeat.send_slack_alert(self,
-                                                          channel_id=self.slack_alert_channel_id_heartbeat,
-                                                          message=alert_message,
-                                                          submessage=alert_submessage)
+                if self.heartbeat_monitor == 'slack':
+                    alert_result = Heartbeat.send_slack_alert(self,
+                                                              channel_id=self.slack_alert_channel_id_heartbeat,
+                                                              message=alert_message,
+                                                              submessage=alert_submessage)
 
-                logger.debug('alert_result[\'Exception\']: ' + str(alert_result['Exception']))
+                    logger.debug('alert_result[\'Exception\']: ' + str(alert_result['Exception']))
 
-                logger.debug('alert_result[\'result\']: ' + str(alert_result['result']))
+                    logger.debug('alert_result[\'result\']: ' + str(alert_result['result']))
 
-                if alert_result['Exception'] == True:
-                    logger.exception('Exception status returned from attempt to send Slack message.')
+                    if alert_result['Exception'] == True:
+                        logger.exception('Exception status returned from attempt to send Slack message.')
 
-            elif self.heartbeat_monitor == 'testing':
-                logger.info('Alert Message:    ' + alert_message)
-                logger.info('Alert Submessage: ' + alert_submessage)
+                elif self.heartbeat_monitor == 'testing':
+                    logger.info('Alert Message:    ' + alert_message)
+                    logger.info('Alert Submessage: ' + alert_submessage)
+
+            else:
+                logger.debug('Skipping Slack alert for regular heartbeat trigger.')
 
         else:
-            logger.debug('Skipping Slack alert for regular heartbeat trigger.')
+            logger.warning('Heartbeat functions currently disabled. \'Heartbeat.enable_heartbeat\' must be called before triggering heartbeats.')
 
 
     def send_slack_alert(self, channel_id, message, submessage=None, status_message=False):
@@ -304,6 +342,10 @@ if __name__ == '__main__':
                    heartbeat_timeout=test_heartbeat_timeout, alert_reset_interval=test_alert_reset_interval,
                    flatline_alerts_only=False, test_channel=True)
 
+    logger.debug('Enabling heartbeat.')
+
+    hb.enable_heartbeat()
+
     try:
         for x in range(0, 2):
             heartbeat_message = 'Heartbeat #' + str(x + 1)
@@ -321,13 +363,9 @@ if __name__ == '__main__':
 
         time.sleep(test_delay)
 
-        logger.debug('Removing heartbeat file to trigger monitor shutdown.')
+        logger.debug('Disabling heartbeat.')
 
-        if os.path.exists(hb.json_save_file):
-            os.remove(hb.json_save_file)
-
-        else:
-            logger.warning('JSON save file missing. An error may have occurred.')
+        hb.disable_heartbeat()
 
         logger.debug('Done.')
 
