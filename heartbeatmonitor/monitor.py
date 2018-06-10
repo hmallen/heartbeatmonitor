@@ -174,12 +174,13 @@ class Monitor:
 
                                 alert_message = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
 
-                                alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
-                                                                                 message=alert_message, flatline=True)
-                                logger.debug('alert_result: ' + str(alert_result))
+                                alert_result = Monitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
+                                                                        message=alert_message, flatline=True)
 
-                                logger.debug('SLACK MESSAGE SENT HERE.')
+                                logger.debug('alert_result[\'Exception\']: ' + str(alert_result['Exception']))
 
+                                logger.debug('alert_result[\'result\']: ' + str(alert_result['result']))
+                                
                                 json_data['flatline_last'] = datetime.datetime.now()
 
                                 json_write_converted = self.json_converter.write_json(json_data=json_data, json_file=file_path)
