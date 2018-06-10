@@ -175,12 +175,12 @@ class Monitor:
                                 alert_message = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
 
                                 alert_result = Monitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
-                                                                        message=alert_message, flatline=True)
+                                                                        module_name=json_data['module'], message=alert_message, flatline=True)
 
                                 logger.debug('alert_result[\'Exception\']: ' + str(alert_result['Exception']))
 
                                 logger.debug('alert_result[\'result\']: ' + str(alert_result['result']))
-                                
+
                                 json_data['flatline_last'] = datetime.datetime.now()
 
                                 json_write_converted = self.json_converter.write_json(json_data=json_data, json_file=file_path)
@@ -224,7 +224,7 @@ class Monitor:
         logger.debug('monitor_state[0]: ' + str(monitor_state[0]))
 
 
-    def send_slack_alert(self, channel_id, message, submessage=None, flatline=False, status_message=False):
+    def send_slack_alert(self, channel_id, message, module_name, submessage=None, flatline=False, status_message=False):
         #alert_result = True
         alert_return = {'Exception': False, 'result': {}}
 
@@ -246,7 +246,7 @@ class Monitor:
 
             attachment_array =  [{"fallback": fallback_message,
                                   "color": heartbeat_color,   # Green = #36A64F, Blue = #3AA3E3, Yellow = #FFFF00, Orange = #FFA500, Red = #FF0000
-                                  "title": "Module: " + self.module_name,
+                                  "title": "Module: " + module_name,
                                   "pretext": message}]
 
             if submessage != None:
