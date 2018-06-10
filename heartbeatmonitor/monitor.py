@@ -8,6 +8,8 @@ import os
 import sys
 import time
 
+import shutil
+
 from json_datetime_converter import JSONDatetimeConverter
 from slackclient import SlackClient
 
@@ -382,6 +384,15 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         logger.info('Exit signal received.')
+
+    finally:
+        if os.path.exists('monitor.out'):
+            if not os.path.exists('logs/'):
+                os.mkdir('logs/')
+
+            archive_file = 'logs/monitor_' + datetime.datetime.now().strftime('%m%d%Y-%H%M%S') + '.out'
+
+            shutil.move('monitor.out', archive_file)
 
     """
     finally:
