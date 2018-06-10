@@ -168,11 +168,12 @@ class Monitor:
 
                         dt_current = datetime.datetime.now()
 
-                        if (dt_current - json_data['heartbeat_last']) > datetime.timedelta(minutes=json_data['heartbeat_timeout']):
-                            if (dt_current - json_data['flatline_last']) > datetime.timedelta(minutes=json_data['alert_reset_interval']):
+                        if (dt_current - json_data['heartbeat_last']) > json_data['heartbeat_timeout']:   #datetime.timedelta(minutes=json_data['heartbeat_timeout']):
+                            if (dt_current - json_data['flatline_last']) > json_data['alert_reset_interval']:    #datetime.timedelta(minutes=json_data['alert_reset_interval']):
                                 #
                                 # SEND SLACK ALERT
                                 #
+                                logger.debug('SLACK MESSAGE SENT HERE.')
 
                                 json_data['flatline_last'] = datetime.datetime.now()
 
