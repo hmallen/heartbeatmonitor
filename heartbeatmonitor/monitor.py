@@ -154,7 +154,9 @@ class Monitor:
 
                         heartbeat_data = {}
 
-                        json_read_converted = self.json_converter.read_json(json_file=file)
+                        file_path = self.json_directory + file
+
+                        json_read_converted = self.json_converter.read_json(json_file=file_path)
 
                         json_data = {}
 
@@ -166,15 +168,15 @@ class Monitor:
 
                         dt_current = datetime.datetime.now()
 
-                        if (dt_current - json_data['data']['heartbeat_last']) > datetime.timedelta(minutes=json_data['data']['heartbeat_timeout']):
-                            if (dt_current - json_data['data']['flatline_last']) > datetime.timedelta(minutes=json_data['data']['alert_reset_interval']):
+                        if (dt_current - json_data['heartbeat_last']) > datetime.timedelta(minutes=json_data['heartbeat_timeout']):
+                            if (dt_current - json_data['flatline_last']) > datetime.timedelta(minutes=json_data['alert_reset_interval']):
                                 #
                                 # SEND SLACK ALERT
                                 #
 
                                 json_data['flatline_last'] = datetime.datetime.now()
 
-                                json_write_converted = self.json_converter.write_json(json_data=json_data, json_file=file)
+                                json_write_converted = self.json_converter.write_json(json_data=json_data, json_file=file_path)
 
                                 if json_write_converted['status'] == False:
                                     logger.error('Error occurred while converting json data during write.')
