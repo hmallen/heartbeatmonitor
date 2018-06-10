@@ -321,6 +321,14 @@ if __name__ == '__main__':
 
         time.sleep(test_delay)
 
+        logger.debug('Removing heartbeat file to trigger monitor shutdown.')
+
+        if os.path.exists(hb.json_save_file):
+            os.remove(hb.json_save_file)
+
+        else:
+            logger.warning('JSON save file missing. An error may have occurred.')
+
         logger.debug('Done.')
 
     #except multiprocessing.ProcessError as e:
