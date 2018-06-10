@@ -370,8 +370,6 @@ class HeartbeatMonitor:
             for proc in active_processes:
                 logger.debug('Child Process: ' + str(proc))
 
-                logger.info('Terminating heartbeat monitor process.')
-
                 proc.terminate()
 
                 logger.info('Joining terminated process to ensure clean exit.')
