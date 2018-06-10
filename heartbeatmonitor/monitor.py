@@ -144,10 +144,8 @@ class Monitor:
                     if file != 'ACTIVE':
                         """
                         {
-                            "flatline_delta": 60.0,
                             "flatline_last": "2018-06-01T01:54:42.781292",
-                            "flatline_timeout": 60.0,
-                            "heartbeat_delta": 5.152881,
+                            "alert_reset_interval": 60.0,
                             "heartbeat_last": "2018-06-01T01:55:53.824336",
                             "heartbeat_timeout": 15.0,
                             "module": "Testing"
@@ -170,11 +168,17 @@ class Monitor:
 
                         dt_current = datetime.datetime.now()
 
-                        if (dt_current - json_data['heartbeat_last']) > json_data['heartbeat_timeout']:   #datetime.timedelta(minutes=json_data['heartbeat_timeout']):
-                            if (dt_current - json_data['flatline_last']).total_seconds() > json_data['alert_reset_interval']:    #datetime.timedelta(minutes=json_data['alert_reset_interval']):
-                                #
-                                # SEND SLACK ALERT
-                                #
+                        if (dt_current - json_data['heartbeat_last']) > json_data['heartbeat_timeout']:
+                            if (dt_current - json_data['flatline_last']).total_seconds() > json_data['alert_reset_interval']:
+                                heartbeat_last_delta = "{:.2f}".format(float((datetime.datetime.now() - json_data['heartbeat_last']).total_seconds()) / 60)
+
+                                alert_message = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
+
+                                if self.heartbeat_monitor == 'slack':
+                                    alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
+                                                                                     message=alert_message, flatline=True)
+                                    logger.debug('alert_result: ' + str(alert_result))
+
                                 logger.debug('SLACK MESSAGE SENT HERE.')
 
                                 json_data['flatline_last'] = datetime.datetime.now()
@@ -221,7 +225,8 @@ class Monitor:
 
 
     def send_slack_alert(self, channel_id, message, submessage=None, flatline=False, status_message=False):
-        alert_result = True
+        #alert_result = True
+        alert_return = {'Exception': False, 'result': {}}
 
         try:
             if status_message == True:
@@ -249,7 +254,7 @@ class Monitor:
 
             attachments = json.dumps(attachment_array)
 
-            self.slack_client.api_call(
+            alert_return['result'] = self.slack_client.api_call(
                 'chat.postMessage',
                 channel=channel_id,
                 text=heartbeat_message,
@@ -262,10 +267,12 @@ class Monitor:
             logger.exception('Exception in heartbeat function.')
             logger.exception(e)
 
-            alert_result = False
+            #alert_result = False
+            alert_return['Exception'] = True
 
         finally:
-            return alert_result
+            #return alert_result
+            return alert_return
 
 
 if __name__ == '__main__':

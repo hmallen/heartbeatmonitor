@@ -334,9 +334,9 @@ if __name__ == '__main__':
 
     test_json_directory = 'json/heartbeat/'
 
-    test_heartbeat_timeout = 1
+    test_heartbeat_timeout = 0.5
 
-    test_alert_reset_interval = 1
+    test_alert_reset_interval = 0.5
 
     hb = Heartbeat(module='Testing', monitor='slack', config_path=test_config_path, json_directory=test_json_directory,
                    heartbeat_timeout=test_heartbeat_timeout, alert_reset_interval=test_alert_reset_interval,

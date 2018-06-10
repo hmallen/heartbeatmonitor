@@ -516,7 +516,8 @@ class HeartbeatMonitor:
                             alert_message = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
 
                             if self.heartbeat_monitor == 'slack':
-                                alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat, message=alert_message, flatline=True)
+                                alert_result = HeartbeatMonitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
+                                                                                 message=alert_message, flatline=True)
                                 logger.debug('alert_result: ' + str(alert_result))
 
                             elif self.heartbeat_monitor == 'testing':
