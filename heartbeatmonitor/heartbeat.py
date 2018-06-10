@@ -178,7 +178,10 @@ class Heartbeat:
 
     def start_monitor(self):
         #popen_string = 'python monitor.py -c ' + self.config_path + ' -d ' + self.json_directory
-        popen_args = ['python', 'monitor.py', '-c', self.config_path, '-d', self.json_directory]
+
+        monitor_log = self.module.lower() + '_monitor.log'
+
+        popen_args = ['python', 'monitor.py', '-c', self.config_path, '-d', self.json_directory, '>', monitor_log]
 
         try:
             #subprocess.Popen(popen_string)
