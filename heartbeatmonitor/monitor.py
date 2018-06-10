@@ -299,7 +299,7 @@ if __name__ == '__main__':
 
         monitor_state = Array('b', [0, 0])
 
-        monitor = Monitor(config_path=config_path, json_directory=json_directory)
+        monitor = Monitor(config_path=config_path, json_directory=json_directory, test_channel=True)
 
         monitor_proc = Process(target=monitor.start, args=(monitor_state,))
 
