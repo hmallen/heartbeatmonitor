@@ -1,0 +1,7 @@
+{
+    "alert_reset_interval": 60.0,
+    "flatline_last": "2018-06-10T04:16:24.324024",
+    "heartbeat_last": "2018-06-10T04:17:24.324024",
+    "heartbeat_timeout": 60.0,
+    "module": "Testing"
+}
