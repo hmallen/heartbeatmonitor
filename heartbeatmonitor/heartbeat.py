@@ -190,6 +190,8 @@ class Heartbeat:
 
                 stdout_file = open('monitor.out', 'w', encoding='utf-8')
 
+                logger.debug('Starting central heartbeat monitor.')
+
                 #subprocess.Popen(popen_string)
                 subprocess.Popen(popen_args, stdout=stdout_file, stderr=subprocess.STDOUT)
 
@@ -291,8 +293,8 @@ class Heartbeat:
 
         try:
             if status_message == True:
-                heartbeat_message = '*Heartbeat monitor status changed.*'
-                fallback_message = 'Heartbeat monitor status changed.'
+                heartbeat_message = '*Heartbeat monitor status has changed.*'
+                fallback_message = 'Heartbeat monitor status has changed.'
                 heartbeat_color = '#FFFF00'     # Yellow
 
             else:

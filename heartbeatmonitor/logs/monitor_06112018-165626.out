@@ -1,0 +1,99 @@
+DEBUG:__main__:slack_channel_heartbeat: heartbeat
+DEBUG:__main__:slack_channel_testing: testing
+DEBUG:__main__:self.slack_bot_user: TeslaBot
+DEBUG:__main__:self.slack_bot_icon: http://teslabot.s3-website-us-east-1.amazonaws.com/tesla.png
+DEBUG:__main__:channel_list.get('ok'): True
+DEBUG:__main__:chan['name']: boterrors
+DEBUG:__main__:chan['name']: bottesting
+DEBUG:__main__:chan['name']: code
+DEBUG:__main__:chan['name']: general
+DEBUG:__main__:chan['name']: heartbeat
+DEBUG:__main__:chan['name']: machinelearning
+DEBUG:__main__:chan['name']: marketalerts
+DEBUG:__main__:chan['name']: marketcap
+DEBUG:__main__:chan['name']: newmarkets
+DEBUG:__main__:chan['name']: testing
+DEBUG:__main__:Slack channel for heartbeat alerts: #testing (CAX1A4XU1)
+DEBUG:__main__:Starting monitor process.
+INFO:__main__:Waiting for monitor to become active.
+INFO:__mp_main__:Start monitor triggered.
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:46:08.583242', 'heartbeat_last': '2018-06-11T16:46:38.583242', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+INFO:__main__:Monitor ready.
+DEBUG:__main__:Sending monitor startup status message.
+ERROR:__main__:Exception in heartbeat function.
+Traceback (most recent call last):
+  File "monitor.py", line 249, in send_slack_alert
+    "title": "Module: " + module_name,
+TypeError: must be str, not NoneType
+ERROR:__main__:must be str, not NoneType
+Traceback (most recent call last):
+  File "monitor.py", line 249, in send_slack_alert
+    "title": "Module: " + module_name,
+TypeError: must be str, not NoneType
+DEBUG:__main__:alert_result['Exception']: True
+DEBUG:__main__:alert_result['result']: {}
+DEBUG:__main__:Monitor active at 16:46:40, 06-11-18.
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:46:08.583242', 'heartbeat_last': '2018-06-11T16:46:44.097771', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:46:08.583242', 'heartbeat_last': '2018-06-11T16:46:49.286444', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:46:08.583242', 'heartbeat_last': '2018-06-11T16:46:49.286444', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:46:08.583242', 'heartbeat_last': '2018-06-11T16:46:49.286444', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:46:08.583242', 'heartbeat_last': '2018-06-11T16:46:49.286444', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:46:08.583242', 'heartbeat_last': '2018-06-11T16:46:49.286444', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:__main__:Monitor active at 16:47:11, 06-11-18.
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:46:08.583242', 'heartbeat_last': '2018-06-11T16:46:49.286444', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:46:08.583242', 'heartbeat_last': '2018-06-11T16:46:49.286444', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:__mp_main__:alert_result['Exception']: False
+DEBUG:__mp_main__:alert_result['result']: {'ok': True, 'channel': 'CAX1A4XU1', 'ts': '1528753639.000337', 'message': {'text': '*WARNING: No heartbeat detected!*', 'username': 'TeslaBot', 'icons': {'image_48': 'https://slack-files2.s3-us-west-2.amazonaws.com/bot_icons/2018-05-13/362192600816_48.png'}, 'bot_id': 'BAJC6EU6S', 'attachments': [{'fallback': 'WARNING: No heartbeat detected!', 'pretext': '*Last heartbeat:* 0.52 minutes ago.', 'title': 'Module: Testing', 'id': 1, 'color': 'FF0000'}], 'type': 'message', 'subtype': 'bot_message', 'ts': '1528753639.000337'}, 'headers': {'Content-Type': 'application/json; charset=utf-8', 'Content-Length': '349', 'Connection': 'keep-alive', 'Date': 'Mon, 11 Jun 2018 21:47:19 GMT', 'Server': 'Apache', 'Expires': 'Mon, 26 Jul 1997 05:00:00 GMT', 'X-Content-Type-Options': 'nosniff', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload', 'Referrer-Policy': 'no-referrer', 'Cache-Control': 'private, no-cache, no-store, must-revalidate', 'X-OAuth-Scopes': 'identify,bot:basic', 'Pragma': 'no-cache', 'X-Accepted-OAuth-Scopes': 'chat:write:bot,post', 'X-XSS-Protection': '0', 'X-Slack-Req-Id': '67a01b59-6027-47f0-a679-5008726b9186', 'X-Slack-Backend': 'h', 'Vary': 'Accept-Encoding', 'Content-Encoding': 'gzip', 'Access-Control-Allow-Origin': '*', 'X-Via': 'haproxy-www-zuny', 'X-Cache': 'Miss from cloudfront', 'Via': '1.1 9ae62efbb8ddbc873c46cf3754b13fd8.cloudfront.net (CloudFront)', 'X-Amz-Cf-Id': 'yYlXgmzuP7CDxwkLkaqdxJLo82YCwfzQla3J4I33a7xh4pBtAHHIxA=='}}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_converted[data]: 30.0
+DEBUG:json_datetime_converter.json_datetime_converter:[convert_datetime] datetime.datetime
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_converted[data]: 2018-06-11T16:47:20.727936
+DEBUG:json_datetime_converter.json_datetime_converter:[convert_datetime] datetime.datetime
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_converted[data]: 2018-06-11T16:46:49.286444
+DEBUG:json_datetime_converter.json_datetime_converter:[convert_datetime] datetime.timedelta
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_converted[data]: 30.0
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_converted[data]: Testing
+INFO:__main__:No heartbeat files found in directory. Starting 30 second shutdown timer.
+DEBUG:__main__:Sending monitor timeout status message.
+ERROR:__main__:Exception in heartbeat function.
+Traceback (most recent call last):
+  File "monitor.py", line 249, in send_slack_alert
+    "title": "Module: " + module_name,
+TypeError: must be str, not NoneType
+ERROR:__main__:must be str, not NoneType
+Traceback (most recent call last):
+  File "monitor.py", line 249, in send_slack_alert
+    "title": "Module: " + module_name,
+TypeError: must be str, not NoneType
+DEBUG:__main__:alert_result['Exception']: True
+DEBUG:__main__:alert_result['result']: {}
+INFO:__main__:Signalling monitor to shutdown.
+INFO:__mp_main__:Kill monitor signalled.
+DEBUG:__mp_main__:Removing monitor active file.
+DEBUG:__mp_main__:monitor_state[0]: 0
+DEBUG:__main__:Monitor stopped successfully.
+DEBUG:__main__:Sending monitor shutdown status message.
+ERROR:__main__:Exception in heartbeat function.
+Traceback (most recent call last):
+  File "monitor.py", line 249, in send_slack_alert
+    "title": "Module: " + module_name,
+TypeError: must be str, not NoneType
+ERROR:__main__:must be str, not NoneType
+Traceback (most recent call last):
+  File "monitor.py", line 249, in send_slack_alert
+    "title": "Module: " + module_name,
+TypeError: must be str, not NoneType
+DEBUG:__main__:alert_result['Exception']: True
+DEBUG:__main__:alert_result['result']: {}
+Traceback (most recent call last):
+  File "C:\Users\Owner\.virtualenvs\heartbeatmonitor-f07L0Xoy\lib\shutil.py", line 544, in move
+    os.rename(src, real_dst)
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'monitor.out' -> 'logs/monitor_06112018-164816.out'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "monitor.py", line 455, in <module>
+    shutil.move('monitor.out', archive_file)
+  File "C:\Users\Owner\.virtualenvs\heartbeatmonitor-f07L0Xoy\lib\shutil.py", line 559, in move
+    os.unlink(src)
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'monitor.out'

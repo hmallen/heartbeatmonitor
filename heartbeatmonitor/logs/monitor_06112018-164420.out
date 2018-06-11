@@ -1,0 +1,80 @@
+DEBUG:__main__:slack_channel_heartbeat: heartbeat
+DEBUG:__main__:slack_channel_testing: testing
+DEBUG:__main__:self.slack_bot_user: TeslaBot
+DEBUG:__main__:self.slack_bot_icon: http://teslabot.s3-website-us-east-1.amazonaws.com/tesla.png
+DEBUG:__main__:channel_list.get('ok'): True
+DEBUG:__main__:chan['name']: boterrors
+DEBUG:__main__:chan['name']: bottesting
+DEBUG:__main__:chan['name']: code
+DEBUG:__main__:chan['name']: general
+DEBUG:__main__:chan['name']: heartbeat
+DEBUG:__main__:chan['name']: machinelearning
+DEBUG:__main__:chan['name']: marketalerts
+DEBUG:__main__:chan['name']: marketcap
+DEBUG:__main__:chan['name']: newmarkets
+DEBUG:__main__:chan['name']: testing
+DEBUG:__main__:Slack channel for heartbeat alerts: #testing (CAX1A4XU1)
+DEBUG:__main__:Starting monitor process.
+INFO:__main__:Waiting for monitor to become active.
+INFO:__mp_main__:Start monitor triggered.
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:42:12.344167', 'heartbeat_last': '2018-06-11T16:42:42.344167', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+INFO:__main__:Monitor ready.
+DEBUG:__main__:Sending monitor startup status message.
+ERROR:__main__:Exception while sending monitor startup status message. Continuing.
+Traceback (most recent call last):
+  File "monitor.py", line 326, in <module>
+    alert_result = monitor.send_slack_alert(channel_id=self.slack_channel_id_heartbeat,
+NameError: name 'self' is not defined
+ERROR:__main__:name 'self' is not defined
+Traceback (most recent call last):
+  File "monitor.py", line 326, in <module>
+    alert_result = monitor.send_slack_alert(channel_id=self.slack_channel_id_heartbeat,
+NameError: name 'self' is not defined
+DEBUG:__main__:Monitor active at 16:42:44, 06-11-18.
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:42:12.344167', 'heartbeat_last': '2018-06-11T16:42:48.211371', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:42:12.344167', 'heartbeat_last': '2018-06-11T16:42:53.376805', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:42:12.344167', 'heartbeat_last': '2018-06-11T16:42:53.376805', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:42:12.344167', 'heartbeat_last': '2018-06-11T16:42:53.376805', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:42:12.344167', 'heartbeat_last': '2018-06-11T16:42:53.376805', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:42:12.344167', 'heartbeat_last': '2018-06-11T16:42:53.376805', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:__main__:Monitor active at 16:43:15, 06-11-18.
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:42:12.344167', 'heartbeat_last': '2018-06-11T16:42:53.376805', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_raw: {'alert_reset_interval': 30.0, 'flatline_last': '2018-06-11T16:42:12.344167', 'heartbeat_last': '2018-06-11T16:42:53.376805', 'heartbeat_timeout': 30.0, 'module': 'Testing'}
+DEBUG:__mp_main__:alert_result['Exception']: False
+DEBUG:__mp_main__:alert_result['result']: {'ok': True, 'channel': 'CAX1A4XU1', 'ts': '1528753403.000278', 'message': {'text': '*WARNING: No heartbeat detected!*', 'username': 'TeslaBot', 'icons': {'image_48': 'https://slack-files2.s3-us-west-2.amazonaws.com/bot_icons/2018-05-13/362192600816_48.png'}, 'bot_id': 'BAJC6EU6S', 'attachments': [{'fallback': 'WARNING: No heartbeat detected!', 'pretext': '*Last heartbeat:* 0.51 minutes ago.', 'title': 'Module: Testing', 'id': 1, 'color': 'FF0000'}], 'type': 'message', 'subtype': 'bot_message', 'ts': '1528753403.000278'}, 'headers': {'Content-Type': 'application/json; charset=utf-8', 'Content-Length': '349', 'Connection': 'keep-alive', 'Date': 'Mon, 11 Jun 2018 21:43:23 GMT', 'Server': 'Apache', 'Expires': 'Mon, 26 Jul 1997 05:00:00 GMT', 'X-Content-Type-Options': 'nosniff', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload', 'Referrer-Policy': 'no-referrer', 'Cache-Control': 'private, no-cache, no-store, must-revalidate', 'X-OAuth-Scopes': 'identify,bot:basic', 'Pragma': 'no-cache', 'X-Accepted-OAuth-Scopes': 'chat:write:bot,post', 'X-XSS-Protection': '0', 'X-Slack-Req-Id': '11ed55dc-81e7-42ca-9c23-aee49b684034', 'X-Slack-Backend': 'h', 'Vary': 'Accept-Encoding', 'Content-Encoding': 'gzip', 'Access-Control-Allow-Origin': '*', 'X-Via': 'haproxy-www-ezq1', 'X-Cache': 'Miss from cloudfront', 'Via': '1.1 aec53e350eb708126515a3ede0bac65d.cloudfront.net (CloudFront)', 'X-Amz-Cf-Id': 'OcDf2kGdWiVbSltph6fpT_4AT7koiVcIj8GVof5387vXGby34NT44A=='}}
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_converted[data]: 30.0
+DEBUG:json_datetime_converter.json_datetime_converter:[convert_datetime] datetime.datetime
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_converted[data]: 2018-06-11T16:43:24.692337
+DEBUG:json_datetime_converter.json_datetime_converter:[convert_datetime] datetime.datetime
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_converted[data]: 2018-06-11T16:42:53.376805
+DEBUG:json_datetime_converter.json_datetime_converter:[convert_datetime] datetime.timedelta
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_converted[data]: 30.0
+DEBUG:json_datetime_converter.json_datetime_converter:json_data_converted[data]: Testing
+INFO:__main__:No heartbeat files found in directory. Starting 30 second shutdown timer.
+DEBUG:__main__:Sending monitor timeout status message.
+ERROR:__main__:Exception while sending monitor timeout status message. Continuing.
+Traceback (most recent call last):
+  File "monitor.py", line 370, in <module>
+    alert_result = monitor.send_slack_alert(channel_id=self.slack_channel_id_heartbeat,
+NameError: name 'self' is not defined
+ERROR:__main__:name 'self' is not defined
+Traceback (most recent call last):
+  File "monitor.py", line 370, in <module>
+    alert_result = monitor.send_slack_alert(channel_id=self.slack_channel_id_heartbeat,
+NameError: name 'self' is not defined
+INFO:__main__:Signalling monitor to shutdown.
+INFO:__mp_main__:Kill monitor signalled.
+DEBUG:__mp_main__:Removing monitor active file.
+DEBUG:__mp_main__:monitor_state[0]: 0
+DEBUG:__main__:Monitor stopped successfully.
+DEBUG:__main__:Sending monitor shutdown status message.
+ERROR:__main__:Exception while sending monitor shutdown status message. Continuing.
+Traceback (most recent call last):
+  File "monitor.py", line 430, in <module>
+    alert_result = monitor.send_slack_alert(channel_id=self.slack_channel_id_heartbeat,
+NameError: name 'self' is not defined
+ERROR:__main__:name 'self' is not defined
+Traceback (most recent call last):
+  File "monitor.py", line 430, in <module>
+    alert_result = monitor.send_slack_alert(channel_id=self.slack_channel_id_heartbeat,
+NameError: name 'self' is not defined

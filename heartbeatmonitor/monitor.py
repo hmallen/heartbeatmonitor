@@ -224,14 +224,14 @@ class Monitor:
         logger.debug('monitor_state[0]: ' + str(monitor_state[0]))
 
 
-    def send_slack_alert(self, channel_id, message, module_name=None, submessage=None, flatline=False, status_message=False):
+    def send_slack_alert(self, channel_id, message, module_name='Central Monitor', submessage=None, flatline=False, status_message=False):
         #alert_result = True
         alert_return = {'Exception': False, 'result': {}}
 
         try:
             if status_message == True:
-                heartbeat_message = '*Heartbeat monitor status changed.*'
-                fallback_message = 'Heartbeat monitor status changed.'
+                heartbeat_message = '*Heartbeat monitor status has changed.*'
+                fallback_message = 'Heartbeat monitor status has changed.'
                 heartbeat_color = '#FFFF00'     # Yellow
 
             elif flatline == False:
@@ -323,7 +323,7 @@ if __name__ == '__main__':
 
             alert_message = 'Central heartbeat monitor *_ACTIVATED_* at ' + datetime.datetime.now().strftime('%H:%M:%S, %m-%d-%y') + '.'
 
-            alert_result = monitor.send_slack_alert(self, channel_id=self.slack_channel_id_heartbeat,
+            alert_result = monitor.send_slack_alert(channel_id=monitor.slack_channel_id_heartbeat,
                                                     message=alert_message, status_message=True)
 
             logger.debug('alert_result[\'Exception\']: ' + str(alert_result['Exception']))
@@ -364,11 +364,16 @@ if __name__ == '__main__':
 
                                 ## send_slack_alert(self, channel_id, message, module_name=None, submessage=None, flatline=False, status_message=False) ##
 
-                                alert_message = ('No heartbeat files detected at ' + datetime.datetime.now().strftime('%H:%M:%S, %m-%d-%y') + '. ' +
-                                                 'Shutting down central heartbeat monitor in 30 seconds.')
+                                #alert_message = ('No heartbeat files detected at ' + datetime.datetime.now().strftime('%H:%M:%S, %m-%d-%y') + '. ' +
+                                                 #'Shutting down central heartbeat monitor in 30 seconds.')
 
-                                alert_result = monitor.send_slack_alert(self, channel_id=self.slack_channel_id_heartbeat,
-                                                                        message=alert_message, status_message=True)
+                                alert_message = 'No heartbeat files detected at ' + datetime.datetime.now().strftime('%H:%M:%S, %m-%d-%y') + '.'
+
+                                alert_submessage = 'Shutting down central heartbeat monitor in 30 seconds.'
+
+                                alert_result = monitor.send_slack_alert(channel_id=monitor.slack_channel_id_heartbeat,
+                                                                        message=alert_message, submessage=alert_submessage,
+                                                                        status_message=True)
 
                                 logger.debug('alert_result[\'Exception\']: ' + str(alert_result['Exception']))
 
@@ -427,9 +432,9 @@ if __name__ == '__main__':
 
             alert_message = 'Central heartbeat monitor *_DEACTIVATED_* at ' + datetime.datetime.now().strftime('%H:%M:%S, %m-%d-%y') + '.'
 
-            alert_result = monitor.send_slack_alert(self, channel_id=self.slack_channel_id_heartbeat,
+            alert_result = monitor.send_slack_alert(channel_id=monitor.slack_channel_id_heartbeat,
                                                     message=alert_message, status_message=True)
-            
+
             logger.debug('alert_result[\'Exception\']: ' + str(alert_result['Exception']))
 
             logger.debug('alert_result[\'result\']: ' + str(alert_result['result']))
@@ -446,6 +451,16 @@ if __name__ == '__main__':
         logger.info('Exit signal received.')
 
     finally:
+        logger.info('Terminating monitor process.')
+
+        monitor_proc.terminate()
+
+        logger.info('Joining terminated process.')
+
+        monitor_proc.join()
+
+        logger.info('Archiving monitor log file.')
+
         if os.path.exists('monitor.out'):
             if not os.path.exists('logs/'):
                 os.mkdir('logs/')
@@ -453,25 +468,3 @@ if __name__ == '__main__':
             archive_file = 'logs/monitor_' + datetime.datetime.now().strftime('%m%d%Y-%H%M%S') + '.out'
 
             shutil.move('monitor.out', archive_file)
-
-    """
-    finally:
-        if startup_complete == True:
-            logger.info('Terminating process.')
-
-            monitor_proc.terminate()
-
-            logger.info('Joining terminated process.')
-
-            monitor_proc.join()
-
-            logger.info('Removing active monitor file.')
-
-            if os.path.exists(monitor.active_file):
-                logger.warning('Monitor active file present at exit but should have been deleted by monitor. An error has likely occurred.')
-
-                os.remove(monitor.active_file)
-
-
-        logger.info('Done.')
-    """
