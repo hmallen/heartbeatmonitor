@@ -72,7 +72,7 @@ class Monitor:
                         logger.debug('chan[\'name\']: ' + chan['name'])
                         if chan['name'] == slack_channel_targets[target]:
                             if target == 'heartbeat':
-                                self.slack_alert_channel_id_heartbeat = chan['id']
+                                self.slack_channel_id_heartbeat = chan['id']
 
                             break
                     else:
@@ -92,7 +92,7 @@ class Monitor:
                         logger.debug('group[\'name\']: ' + group['name'])
                         if group['name'] == slack_channel_targets[target]:
                             if target == 'heartbeat':
-                                self.slack_alert_channel_id_heartbeat = group['id']
+                                self.slack_channel_id_heartbeat = group['id']
 
                             break
                     else:
@@ -106,7 +106,7 @@ class Monitor:
                     sys.exit(1)
 
         logger.debug('Slack channel for heartbeat alerts: #' + slack_channel_targets['heartbeat'] +
-                    ' (' + self.slack_alert_channel_id_heartbeat + ')')
+                    ' (' + self.slack_channel_id_heartbeat + ')')
 
 
     def start(self, monitor_state):
@@ -174,7 +174,7 @@ class Monitor:
 
                                 alert_message = '*Last heartbeat:* ' + heartbeat_last_delta + ' minutes ago.'
 
-                                alert_result = Monitor.send_slack_alert(self, channel_id=self.slack_alert_channel_id_heartbeat,
+                                alert_result = Monitor.send_slack_alert(self, channel_id=self.slack_channel_id_heartbeat,
                                                                         module_name=json_data['module'], message=alert_message, flatline=True)
 
                                 logger.debug('alert_result[\'Exception\']: ' + str(alert_result['Exception']))
@@ -224,7 +224,7 @@ class Monitor:
         logger.debug('monitor_state[0]: ' + str(monitor_state[0]))
 
 
-    def send_slack_alert(self, channel_id, message, module_name, submessage=None, flatline=False, status_message=False):
+    def send_slack_alert(self, channel_id, message, module_name=None, submessage=None, flatline=False, status_message=False):
         #alert_result = True
         alert_return = {'Exception': False, 'result': {}}
 
@@ -316,6 +316,24 @@ if __name__ == '__main__':
 
         logger.info('Monitor ready.')
 
+        try:
+            logger.debug('Sending monitor startup status message.')
+
+            ## send_slack_alert(self, channel_id, message, module_name=None, submessage=None, flatline=False, status_message=False) ##
+
+            alert_message = 'Central heartbeat monitor *_ACTIVATED_* at ' + datetime.datetime.now().strftime('%H:%M:%S, %m-%d-%y') + '.'
+
+            alert_result = monitor.send_slack_alert(self, channel_id=self.slack_channel_id_heartbeat,
+                                                    message=alert_message, status_message=True)
+
+            logger.debug('alert_result[\'Exception\']: ' + str(alert_result['Exception']))
+
+            logger.debug('alert_result[\'result\']: ' + str(alert_result['result']))
+
+        except Exception as e:
+            logger.exception('Exception while sending monitor startup status message. Continuing.')
+            logger.exception(e)
+
         directory_empty = False
 
         timeout_start = None
@@ -341,13 +359,30 @@ if __name__ == '__main__':
                         if timeout_start == None:
                             logger.info('No heartbeat files found in directory. Starting 30 second shutdown timer.')
 
+                            try:
+                                logger.debug('Sending monitor timeout status message.')
+
+                                ## send_slack_alert(self, channel_id, message, module_name=None, submessage=None, flatline=False, status_message=False) ##
+
+                                alert_message = ('No heartbeat files detected at ' + datetime.datetime.now().strftime('%H:%M:%S, %m-%d-%y') + '. ' +
+                                                 'Shutting down central heartbeat monitor in 30 seconds.')
+
+                                alert_result = monitor.send_slack_alert(self, channel_id=self.slack_channel_id_heartbeat,
+                                                                        message=alert_message, status_message=True)
+
+                                logger.debug('alert_result[\'Exception\']: ' + str(alert_result['Exception']))
+
+                                logger.debug('alert_result[\'result\']: ' + str(alert_result['result']))
+
+                            except Exception as e:
+                                logger.exception('Exception while sending monitor timeout status message. Continuing.')
+                                logger.exception(e)
+
                             timeout_start = time.time()
 
                         else:
                             if monitor_state[1] == 0 and (time.time() - timeout_start) > 30:
                                 logger.info('Signalling monitor to shutdown.')
-
-                                #monitor_state[1] = 1
 
                                 monitor.stop(monitor_state)
 
@@ -384,6 +419,24 @@ if __name__ == '__main__':
                 monitor_state[1] = 1
 
         logger.debug('Monitor stopped successfully.')
+
+        try:
+            logger.debug('Sending monitor shutdown status message.')
+
+            ## send_slack_alert(self, channel_id, message, module_name=None, submessage=None, flatline=False, status_message=False) ##
+
+            alert_message = 'Central heartbeat monitor *_DEACTIVATED_* at ' + datetime.datetime.now().strftime('%H:%M:%S, %m-%d-%y') + '.'
+
+            alert_result = monitor.send_slack_alert(self, channel_id=self.slack_channel_id_heartbeat,
+                                                    message=alert_message, status_message=True)
+            
+            logger.debug('alert_result[\'Exception\']: ' + str(alert_result['Exception']))
+
+            logger.debug('alert_result[\'result\']: ' + str(alert_result['result']))
+
+        except Exception as e:
+            logger.exception('Exception while sending monitor shutdown status message. Continuing.')
+            logger.exception(e)
 
     except Exception as e:
         logger.exception('Unhandled exception in heartbeatmonitor.monitor.')
