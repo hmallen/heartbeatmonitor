@@ -1,0 +1,18 @@
+Metadata-Version: 2.1
+Name: heartbeatmonitor
+Version: 0.1a18
+Summary: Central heartbeat monitoring application for multi-program deployment.
+Home-page: https://github.com/hmallen/heartbeatmonitor
+Author: Hunter M. Allen
+Author-email: allenhm@gmail.com
+License: MIT
+Description: # Heartbeat Monitor
+        
+        Heartbeat monitor with integrated Slack alerts designed for use with multiple programs simultaneously.
+        
+Keywords: heartbeat,monitor
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
