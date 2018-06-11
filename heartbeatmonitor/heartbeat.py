@@ -184,11 +184,16 @@ class Heartbeat:
             try:
                 #popen_string = 'python monitor.py -c ' + self.config_path + ' -d ' + self.json_directory
 
-                monitor_log = self.module_name.lower() + '_monitor.log'
+                #monitor_log = self.module_name.lower() + '_monitor.log'
 
                 popen_args = ['python', 'monitor.py', '-c', self.config_path, '-d', self.json_directory]#, '>', monitor_log]
 
-                stdout_file = open('monitor.out', 'w', encoding='utf-8')
+                if not os.path.exists('logs/'):
+                    os.mkdir('logs/')
+
+                stdout_file_path = 'logs/monitor.out'
+
+                stdout_file = open(stdout_file_path, 'w', encoding='utf-8')
 
                 logger.debug('Starting central heartbeat monitor.')
 

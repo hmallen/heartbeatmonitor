@@ -459,12 +459,13 @@ if __name__ == '__main__':
 
         monitor_proc.join()
 
-        logger.info('Archiving monitor log file.')
-
         if os.path.exists('monitor.out'):
+            logger.info('Archiving monitor log file.')
+            
             if not os.path.exists('logs/'):
                 os.mkdir('logs/')
 
             archive_file = 'logs/monitor_' + datetime.datetime.now().strftime('%m%d%Y-%H%M%S') + '.out'
 
-            shutil.move('monitor.out', archive_file)
+            #shutil.move('monitor.out', archive_file)
+            shutil.copy('monitor.out', archive_file)
