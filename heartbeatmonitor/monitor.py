@@ -15,7 +15,7 @@ from slackclient import SlackClient
 
 #logging.basicConfig()
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
 
 class Monitor:
@@ -468,4 +468,4 @@ if __name__ == '__main__':
             archive_file = 'logs/monitor_' + datetime.datetime.now().strftime('%m%d%Y-%H%M%S') + '.out'
 
             #shutil.move('monitor.out', archive_file)
-            shutil.copy('monitor.out', archive_file)
+            shutil.copy('logs/monitor.out', archive_file)

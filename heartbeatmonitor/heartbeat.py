@@ -11,7 +11,7 @@ from .monitor import Monitor
 
 #logging.basicConfig()
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
 
 class Heartbeat:
@@ -186,7 +186,8 @@ class Heartbeat:
 
                 #monitor_log = self.module_name.lower() + '_monitor.log'
 
-                popen_args = ['python', 'monitor.py', '-c', self.config_path, '-d', self.json_directory]#, '>', monitor_log]
+                #popen_args = ['python', 'monitor.py', '-c', self.config_path, '-d', self.json_directory]#, '>', monitor_log]
+                popen_args = ['python', '-m', 'heartbeatmonitor.monitor', '-c', self.config_path, '-d', self.json_directory]
 
                 if not os.path.exists('logs/'):
                     os.mkdir('logs/')
