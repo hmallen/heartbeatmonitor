@@ -13,7 +13,7 @@ import shutil
 from json_datetime_converter import JSONDatetimeConverter
 from slackclient import SlackClient
 
-logging.basicConfig()
+#logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -461,7 +461,7 @@ if __name__ == '__main__':
 
         if os.path.exists('monitor.out'):
             logger.info('Archiving monitor log file.')
-            
+
             if not os.path.exists('logs/'):
                 os.mkdir('logs/')
 

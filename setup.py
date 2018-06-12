@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='heartbeatmonitor',
-    version='0.1a18',
+    version='0.1a19',
     author='Hunter M. Allen',
     author_email='allenhm@gmail.com',
     license='MIT',
@@ -13,7 +13,8 @@ setup(
     packages=['heartbeatmonitor'],
     #scripts=['bin/heartbeatmonitor.py'],
     install_requires=['python-dateutil>=2.7.3',
-                      'slackclient>=1.2.1'],
+                      'slackclient>=1.2.1',
+                      'json_datetime_converter>=0.1a2'],
     description='Central heartbeat monitoring application for multi-program deployment.',
     long_description=long_description,
     long_description_content_type='text/markdown',

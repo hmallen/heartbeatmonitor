@@ -9,7 +9,7 @@ import time
 from json_datetime_converter import JSONDatetimeConverter
 from monitor import Monitor
 
-logging.basicConfig()
+#logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
