@@ -7,7 +7,7 @@ import sys
 import time
 
 from json_datetime_converter import JSONDatetimeConverter
-from monitor import Monitor
+from .monitor import Monitor
 
 #logging.basicConfig()
 logger = logging.getLogger(__name__)
